@@ -148,6 +148,30 @@
     </footer>
   </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+
+<script>
+  // Configuração do Firebase — USE A SUA
+  const firebaseConfig = {
+    apiKey: "AIzaSyCXZbF9moR3N7eajKdXTGx9NyRN7mcJVIs",
+    authDomain: "escola-eletivas.firebaseapp.com",
+    projectId: "escola-eletivas",
+    storageBucket: "escola-eletivas.firebasestorage.app",
+    messagingSenderId: "824083879774",
+    appId: "1:824083879774:web:219e9a0f025bd86bca21cf"
+  };
+
+  // Inicializa Firebase
+  firebase.initializeApp(firebaseConfig);
+
+  // Inicializa Firestore
+  const db = firebase.firestore();
+</script>
+
+
+  
   <script src="script.js"></script>
 </body>
 </html>
+
