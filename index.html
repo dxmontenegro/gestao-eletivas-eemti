@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- LOGIN -->
   <div id="login-screen" class="card center">
     <h2>Login</h2>
     <form id="login-form">
@@ -22,7 +21,6 @@
     </form>
   </div>
 
-  <!-- MAIN SYSTEM -->
   <div id="main-system" style="display:none">
     <header class="topbar">
       <h1>EEMTI DRAGÃO DO MAR — Painel de Eletivas</h1>
@@ -37,7 +35,6 @@
     </header>
 
     <main class="container">
-      <!-- ABA ALUNO -->
       <section id="aluno-tab" class="tab-content active">
         <h2>Cadastrar Aluno</h2>
         <form id="form-aluno">
@@ -48,14 +45,15 @@
           <input id="aluno-nome" name="nome" type="text" placeholder="Nome do aluno" required>
 
           <label for="aluno-turma">Turma de Origem</label>
-          <input id="aluno-turma" name="turma" type="text" placeholder="Ex: 1A" required>
+          <select id="aluno-turma" name="turma" required>
+            <option value="" disabled selected>Selecione a Turma</option>
+          </select>
 
           <div id="aluno-message" class="message"></div>
           <button type="submit" class="btn">Cadastrar Aluno</button>
         </form>
       </section>
 
-      <!-- ABA PROFESSOR -->
       <section id="professor-tab" class="tab-content" style="display:none">
         <h2>Cadastrar Professor</h2>
         <form id="form-professor">
@@ -67,7 +65,6 @@
         </form>
       </section>
 
-      <!-- ABA ELETIVA -->
       <section id="eletiva-tab" class="tab-content" style="display:none">
         <h2>Cadastrar Eletiva</h2>
         <form id="form-eletiva">
@@ -82,7 +79,6 @@
         </form>
       </section>
 
-      <!-- ABA VÍNCULO -->
       <section id="vinculo-tab" class="tab-content" style="display:none">
         <h2>Vincular Professor à Eletiva</h2>
         <form id="form-vincular-professor">
@@ -97,12 +93,19 @@
         </form>
       </section>
 
-      <!-- ABA REGISTRO DE ALUNO -->
       <section id="registro-tab" class="tab-content" style="display:none">
         <h2>Registrar Aluno na Eletiva</h2>
         <form id="form-registrar-aluno">
-          <label for="registro-matricula">Matrícula ou Nome do Aluno</label>
-          <input id="registro-matricula" name="matricula" type="text" placeholder="Matrícula ou nome (como está em Alunos)" required>
+          
+          <label for="registro-turma">Turma do Aluno</label>
+          <select id="registro-turma" name="turma" required>
+            <option value="" disabled selected>Selecione a Turma</option>
+          </select>
+          
+          <label for="registro-aluno-nome">Aluno</label>
+          <select id="registro-aluno-nome" name="matricula" required disabled>
+            <option value="" disabled selected>Selecione a Turma Primeiro</option>
+          </select>
 
           <label for="registro-eletiva">Eletiva</label>
           <select id="registro-eletiva" name="eletiva"></select>
@@ -112,7 +115,6 @@
         </form>
       </section>
 
-      <!-- ABA MAPA DE ELETIVAS -->
       <section id="mapa-eletiva-tab" class="tab-content" style="display:none">
         <h2>Mapa de Eletivas / Notas</h2>
 
@@ -151,9 +153,3 @@
   <script src="script.js"></script>
 </body>
 </html>
-
-
-  <script src="script.js"></script>
-</body>
-</html>
-
