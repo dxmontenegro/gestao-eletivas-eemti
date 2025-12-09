@@ -1,150 +1,48 @@
-/* style.css - (Atualizado) */
+/* style.css - simples e funcional */
 
-/* Variáveis de Cores */
-:root {
-    --primary-color: #007bff; /* Azul vibrante */
-    --secondary-color: #28a745; /* Verde sucesso */
-    --background-color: #f4f7f9;
-    --card-color: #ffffff;
-    --text-color: #34495e;
-    --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.05);
-    --shadow-hover: 0 8px 16px rgba(0, 0, 0, 0.15);
+:root{
+  --bg:#f5f7fb;
+  --card:#ffffff;
+  --accent:#2b6cb0;
+  --muted:#6b7280;
+  --success:#16a34a;
+  --danger:#dc2626;
 }
 
-/* Estilos Globais e Fonte */
-body {
-    font-family: 'Poppins', sans-serif;
-    background-color: var(--background-color);
-    color: var(--text-color);
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column; /* Para incluir o cabeçalho da escola no topo */
-    align-items: center;
-    min-height: 100vh;
+*{box-sizing:border-box;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;}
+body{margin:0;background:var(--bg);color:#111;}
+
+.topbar{background:linear-gradient(90deg,#0ea5e9,#0369a1);color:white;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;}
+.topbar h1{font-size:18px;margin:0;}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;}
+.tab-button{background:transparent;border:1px solid rgba(255,255,255,0.2);color:white;padding:6px 10px;border-radius:6px;cursor:pointer;}
+.tab-button.active{background:rgba(255,255,255,0.12);}
+
+.container{max-width:980px;margin:20px auto;padding:12px;}
+.card{background:var(--card);padding:18px;border-radius:10px;box-shadow:0 6px 18px rgba(15,23,42,0.08);}
+.center{max-width:360px;margin:80px auto;padding:20px;text-align:center;}
+
+h2{margin-top:0;color:#0f172a;}
+
+form{display:grid;gap:8px;align-items:start;}
+label{font-size:13px;color:var(--muted);}
+input[type="text"],input[type="password"],input[type="number"],select{padding:8px;border-radius:6px;border:1px solid #e6e9ee;background:white;}
+.btn{background:var(--accent);color:white;border:none;padding:10px 14px;border-radius:8px;cursor:pointer;font-weight:600;}
+.btn.small{padding:6px 10px;font-size:13px;margin-left:8px;}
+
+.row{display:flex;gap:8px;align-items:center;margin:12px 0;flex-wrap:wrap;}
+
+.message{min-height:20px;font-size:13px;margin-top:4px;}
+
+.table{width:100%;border-collapse:collapse;background:var(--card);border-radius:8px;overflow:hidden;box-shadow:0 6px 18px rgba(2,6,23,0.04);margin-top:12px;}
+.table th,.table td{padding:10px;border-bottom:1px solid #eef2f7;text-align:left;font-size:14px;}
+.table thead{background:#f8fafc;}
+
+.footer{max-width:980px;margin:20px auto;padding:8px;text-align:center;color:var(--muted);font-size:13px;}
+@media (max-width:600px){
+  .topbar h1{font-size:14px;}
+  .container{padding:8px;}
 }
 
-/* NOVO: Cabeçalho EEMTI DRAGÃO DO MAR */
-.school-header {
-    width: 100%;
-    background-color: #1a2a47; /* Azul marinho escuro */
-    color: white;
-    padding: 15px 0;
-    text-align: center;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    margin-bottom: 20px;
-}
-.school-header h1 {
-    font-size: 1.8rem;
-    font-weight: 700;
-    margin: 0;
-    color: white;
-    border-bottom: none;
-    padding-bottom: 0;
-}
 
-/* Container Principal do Sistema (Após Login) */
-#main-system {
-    width: 100%;
-    max-width: 1100px;
-    margin-top: 20px;
-    padding: 0 20px;
-}
 
-/* Componente Card (Usado no Login e Abas) */
-.card {
-    background-color: var(--card-color);
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: var(--shadow-light);
-    transition: box-shadow 0.3s ease-in-out;
-    margin-bottom: 20px;
-}
-.card:hover {
-    box-shadow: var(--shadow-hover);
-}
-
-/* ... (O restante do CSS para login, menu, botões e forms é o mesmo) ... */
-
-/* --- Menu de Abas (Navigation) --- */
-#menu-abas {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 25px;
-    padding: 10px;
-    background-color: var(--card-color);
-    border-radius: 8px;
-    box-shadow: var(--shadow-light);
-}
-
-.tab-button {
-    background-color: #e9ecef;
-    color: var(--text-color);
-    border: none;
-    padding: 10px 18px;
-    cursor: pointer;
-    border-radius: 6px;
-    transition: all 0.3s ease;
-    font-weight: 600;
-}
-
-.tab-button.active {
-    background-color: var(--primary-color);
-    color: white;
-    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.4);
-    transform: none;
-}
-
-/* --- Estilos do Mapa de Eletivas --- */
-.filter-controls {
-    display: flex;
-    gap: 15px;
-    align-items: center;
-    margin-bottom: 20px;
-    padding: 10px;
-    border: 1px dashed #ced4da;
-    border-radius: 8px;
-}
-
-.filter-controls label, .filter-controls select {
-    margin: 0;
-    padding: 0;
-}
-
-.filter-controls select {
-    width: 250px;
-}
-
-.table-container {
-    overflow-x: auto; /* Permite rolar a tabela em telas pequenas */
-}
-
-#mapa-alunos-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 15px;
-}
-
-#mapa-alunos-table th, #mapa-alunos-table td {
-    border: 1px solid #ddd;
-    padding: 12px;
-    text-align: left;
-}
-
-#mapa-alunos-table th {
-    background-color: #f8f9fa;
-    color: var(--text-color);
-    font-weight: 600;
-}
-
-#mapa-alunos-table tbody tr:nth-child(even) {
-    background-color: #f3f3f3;
-}
-
-/* Coluna de Nota com largura maior */
-.col-nota {
-    width: 150px; 
-    font-weight: bold;
-    color: var(--primary-color);
-}
