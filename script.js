@@ -4,7 +4,9 @@
 // URL CORRIGIDA: ATENÇÃO CRÍTICA: USE A SUA URL DE DEPLOYMENT ATIVA
 // A URL abaixo foi extraída da sua imagem de credenciais.
 // ----------------------------------------------------------------------
-const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbwBlai5AvIrteYrmPlfD_EpTTJi00TWRR8pzzPch-J-45UePzKqIFXESUtZxH4EYncH/exec';
+
+// Confirme que esta linha está EXATAMENTE assim:
+const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbwBIai5AvIrteYrmPlfD_EpTTJi00TWRR8pzzPch-J-45UePzKqIFXESUtZxH4EYncH/exec';
 
 // --- 1. Controle de Abas e Visibilidade ---
 function showTab(tabId) {
@@ -263,3 +265,4 @@ document.getElementById('btn-gerar-pdf').addEventListener('click', async functio
         messageElement.textContent = '❌ Erro de comunicação ao gerar o PDF. Verifique o GAS.';
     }
 });
+
