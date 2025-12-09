@@ -1,160 +1,285 @@
-// script.js - Versão corrigida (compatível com seu HTML original + Firestore)
-// Observação: exige que 'db' exista globalmente (inicializado no index.html)
+// script.js (Frontend Logic) - Atualizado
+// SUBSTITUA esta URL pela URL do seu Web App do Google Apps Script (deploy)
+const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbwBIai5AvIrteYrmPlfD_EpTTJi00TWRR8pzzPch-J-45UePzKqIFXESUtZxH4EYncH/exec';
 
-// -----------------------------
-// 0. Segurança / helpers
-// -----------------------------
-function safeQuery(selector) {
-  try { return document.querySelector(selector); } catch { return null; }
-}
-function safeQueryAll(selector) {
-  try { return Array.from(document.querySelectorAll(selector)); } catch { return []; }
-}
-function setMessage(id, text, color = 'black') {
-  const el = document.getElementById(id);
-  if (!el) return;
-  el.style.color = color;
-  el.textContent = text;
-}
-function escapeHtml(s) {
-  if (!s && s !== 0) return '';
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-}
-
-// -----------------------------
-// 1. Controle de Abas (robusto)
-// -----------------------------
+// --- 1. Controle de Abas e Visibilidade ---
 function showTab(tabId) {
-  // esconder todas
-  safeQueryAll('.tab-content').forEach(t => {
-    t.style.display = 'none';
-    t.classList.remove('active');
-  });
-
-  // mostrar a solicitada
-  const active = document.getElementById(tabId);
-  if (active) {
-    active.style.display = 'block';
-    active.classList.add('active');
-  } else {
-    console.warn('showTab: aba não encontrada ->', tabId);
-  }
-
-  // atualizar estado dos botões
-  safeQueryAll('.tab-button').forEach(b => b.classList.remove('active'));
-  const btn = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
-  if (btn) btn.classList.add('active');
-}
-
-// garante que os botões de aba chamem showTab mesmo que onclick esteja faltando
-function bindTabButtons() {
-  const buttons = safeQueryAll('.tab-button');
-  buttons.forEach(btn => {
-    // evita duplicar listeners
-    if (!btn.dataset.bound) {
-      btn.addEventListener('click', (e) => {
-        const tab = btn.dataset.tab;
-        if (tab) showTab(tab);
-      });
-      btn.dataset.bound = '1';
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.style.display = 'none';
+        tab.classList.remove('active');
+    });
+    const activeTab = document.getElementById(tabId);
+    if (activeTab) {
+        activeTab.style.display = 'block';
+        activeTab.classList.add('active');
     }
-  });
+
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    const btn = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+    if (btn) btn.classList.add('active');
+    
+    if (tabId === 'mapa-eletiva-tab') {
+        loadDynamicDataForMap();
+    }
 }
 
-// -----------------------------
-// 2. Inicialização geral
-// -----------------------------
 document.addEventListener('DOMContentLoaded', () => {
-  bindTabButtons();
-  // exibe a aba inicial com segurança
-  try {
     showTab('aluno-tab');
-  } catch (err) {
-    console.error('Erro ao mostrar aba inicial:', err);
-  }
-
-  // preencher campos de login (se existirem)
-  const u = document.getElementById('username');
-  const p = document.getElementById('password');
-  if (u) u.value = 'monte';
-  if (p) p.value = '1234';
-
-  // se o login já estiver oculto por algum motivo, deixa visível o main-system (proteção)
-  const main = document.getElementById('main-system');
-  if (main && main.style.display === 'none') {
-    // não forçar visibilidade sem login — mantemos comportamento normal
-  }
-
-  // Tenta carregar selects (se Firestore estiver disponível)
-  try { loadDynamicData().catch(e => console.warn('loadDynamicData falhou:', e)); } catch {}
+    document.getElementById('username').value = 'monte';
+    document.getElementById('password').value = '1234';
+    loadDynamicData();
 });
 
-// -----------------------------
-// 3. Login simples (mantém comportamento anterior)
-// -----------------------------
-const loginForm = safeQuery('#login-form');
-if (loginForm) {
-  loginForm.addEventListener('submit', (ev) => {
-    ev.preventDefault();
-    const user = (safeQuery('#username')?.value || '').trim().toLowerCase();
-    const pass = (safeQuery('#password')?.value || '').trim();
-    const msgEl = document.getElementById('login-message');
-
-    if (user === 'monte' && pass === '1234') {
-      // mostrar interface principal
-      const loginScreen = document.getElementById('login-screen');
-      const mainSystem = document.getElementById('main-system');
-      if (loginScreen) loginScreen.style.display = 'none';
-      if (mainSystem) mainSystem.style.display = 'block';
-
-      // garante que abas estão vinculadas e exibe a inicial
-      bindTabButtons();
-      showTab('aluno-tab');
-      // carrega dados (Firestore)
-      if (typeof loadDynamicData === 'function') {
-        loadDynamicData().catch(e => console.error('Erro loadDynamicData após login:', e));
-      }
-      if (msgEl) msgEl.textContent = '';
+// --- 2. Login Simples ---
+document.getElementById('login-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const user = document.getElementById('username').value.trim(); 
+    const pass = document.getElementById('password').value.trim(); 
+    const message = document.getElementById('login-message');
+    
+    if (user.toLowerCase() === 'monte' && pass === '1234') {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('main-system').style.display = 'block';
+        message.textContent = '';
+        loadDynamicData();
+        loadDynamicDataForMap();
     } else {
-      if (msgEl) {
-        msgEl.style.color = 'red';
-        msgEl.textContent = 'Usuário ou senha inválidos.';
-      }
+        message.style.color = 'red';
+        message.textContent = '❌ Usuário ou senha inválidos.';
     }
-  });
-}
-
-// -----------------------------
-// 4. Funções Firestore / Operações (mantidas do script anterior)
-// -----------------------------
-// (aqui assumimos que você já tem a versão Firestore do script
-//  com todas as handlers de formulário: cadastrar aluno, professor, eletiva,
-//  vincular professor, registrar aluno, ver mapa, gerar PDF, etc.)
-//
-// Para evitar duplicação, se você já tem o script completo abaixo (funcional),
-// apenas garanta que ele seja carregado após este arquivo OR que as funções
-// sejam definidas no mesmo script.js. Caso precise, recoloquerei o script
-// completo com as handlers Firestore novamente.
-//
-// Exemplo: se loadDynamicData não existir, definimos um stub para evitar erro:
-if (typeof loadDynamicData !== 'function') {
-  async function loadDynamicData() {
-    // stub — se seu script Firestore real estiver presente, esta função será substituída
-    console.warn('loadDynamicData stub executado — verifique se o script Firestore foi carregado.');
-    return;
-  }
-}
-
-// -----------------------------
-// 5. Proteções e logs para debug
-// -----------------------------
-window.addEventListener('error', (ev) => {
-  console.error('Erro de runtime:', ev.message, 'em', ev.filename, 'linha', ev.lineno);
 });
-console.log('script.js carregado (versão robusta).');
 
+// --- 3. Comunicação Centralizada com o GAS ---
+function showLoading(messageElement, action = 'Enviando') {
+    if (!messageElement) return;
+    messageElement.textContent = `⏳ ${action} dados...`;
+    messageElement.style.color = 'blue';
+}
 
+async function sendDataToGAS(action, formId, messageId) {
+    const form = document.getElementById(formId);
+    const messageElement = document.getElementById(messageId);
+    if (!messageElement) return;
+    showLoading(messageElement);
+
+    const formData = new FormData(form);
+    const params = new URLSearchParams();
+    params.append('action', action);
+    for (const [key, value] of formData.entries()) {
+        params.append(key, value);
+    }
+
+    try {
+        const response = await fetch(GAS_ENDPOINT_URL, {
+            method: 'POST',
+            body: params,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        });
+
+        let result = null;
+        try {
+            result = await response.json();
+        } catch (jsonErr) {
+            if (response.ok) {
+                messageElement.style.color = 'orange';
+                messageElement.textContent = `⚠️ Sucesso na Planilha, mas resposta do servidor não é JSON legível.`;
+                if (form) form.reset();
+                await loadDynamicData();
+                await loadDynamicDataForMap();
+                return;
+            } else {
+                throw new Error(`Resposta inválida do servidor. Status HTTP: ${response.status}`);
+            }
+        }
+
+        if (result && result.status === 'success') {
+            messageElement.style.color = 'green';
+            messageElement.textContent = `✅ ${result.message || 'Operação realizada com sucesso.'}`;
+            if (form) form.reset();
+            await loadDynamicData();
+            await loadDynamicDataForMap();
+        } else {
+            messageElement.style.color = 'red';
+            const msg = (result && result.message) ? result.message : 'Erro desconhecido do servidor.';
+            messageElement.textContent = `❌ Erro do Servidor: ${msg}`;
+        }
+
+    } catch (error) {
+        console.error('Erro de Processamento/Conexão:', error);
+        messageElement.style.color = 'red';
+        messageElement.textContent = `❌ Erro de conexão com o servidor. Detalhe: ${error.message || error}`;
+    }
+}
+
+// Vinculação de Formulários
+document.getElementById('form-aluno').addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendDataToGAS('cadastrarAluno', 'form-aluno', 'aluno-message');
+});
+
+document.getElementById('form-professor').addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendDataToGAS('cadastrarProfessor', 'form-professor', 'professor-message');
+});
+
+document.getElementById('form-eletiva').addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendDataToGAS('cadastrarEletiva', 'form-eletiva', 'eletiva-message');
+});
+
+document.getElementById('form-vincular-professor').addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendDataToGAS('vincularProfessor', 'form-vincular-professor', 'vinculo-professor-message');
+});
+
+document.getElementById('form-registrar-aluno').addEventListener('submit', (e) => {
+    e.preventDefault();
+    sendDataToGAS('registrarAluno', 'form-registrar-aluno', 'registro-aluno-message');
+});
+
+// --- 4. Carregamento de Dados Dinâmicos (GET) ---
+function fillSelect(selectId, optionsArray, placeholderText = 'Selecione...') {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    select.innerHTML = `<option value="" disabled selected>${placeholderText}</option>`;
+    if (!optionsArray || !Array.isArray(optionsArray) || optionsArray.length === 0) {
+        const opt = document.createElement('option');
+        opt.value = '';
+        opt.disabled = true;
+        opt.selected = true;
+        opt.textContent = '— Nenhum registro —';
+        select.appendChild(opt);
+        return;
+    }
+    optionsArray.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.nome;
+        option.textContent = item.nome;
+        select.appendChild(option);
+    });
+}
+
+async function loadDynamicData() {
+    const urlBusca = `${GAS_ENDPOINT_URL}?action=getDynamicData`;
+    const selectsToUpdate = ['vinculo-professor', 'vinculo-eletiva', 'registro-eletiva', 'mapa-eletiva-select'];
+
+    selectsToUpdate.forEach(id => {
+        const select = document.getElementById(id);
+        if (select) select.innerHTML = '<option value="" disabled selected>⏳ Carregando dados...</option>';
+    });
+
+    try {
+        const response = await fetch(urlBusca);
+        const result = await response.json();
+
+        if (result.status === 'success') {
+            fillSelect('vinculo-professor', result.professores, 'Selecione o Professor');
+            fillSelect('vinculo-eletiva', result.eletivas, 'Selecione a Eletiva');
+            fillSelect('registro-eletiva', result.eletivas, 'Selecione a Eletiva');
+            fillSelect('mapa-eletiva-select', result.eletivas, 'Selecione a Eletiva');
+        } else {
+            console.error('Erro ao buscar dados dinâmicos:', result.message);
+            selectsToUpdate.forEach(id => {
+                const select = document.getElementById(id);
+                if (select) select.innerHTML = '<option value="" disabled selected>❌ Falha ao carregar</option>';
+            });
+        }
+    } catch (error) {
+        console.error('Falha na comunicação com o GAS (GET):', error);
+        selectsToUpdate.forEach(id => {
+            const select = document.getElementById(id);
+            if (select) select.innerHTML = '<option value="" disabled selected>❌ Erro de rede</option>';
+        });
+    }
+}
+
+async function loadDynamicDataForMap() {
+    await loadDynamicData();
+}
+
+// --- 5. Lógica da Aba "Mapa de Eletivas" ---
+document.getElementById('btn-ver-mapa').addEventListener('click', async function() {
+    const select = document.getElementById('mapa-eletiva-select');
+    const eletiva = select ? select.value : '';
+    const corpoTabela = document.querySelector('#mapa-alunos-table tbody');
+    const messageElement = document.getElementById('mapa-message');
+
+    if (!eletiva) {
+        messageElement.style.color = 'red';
+        messageElement.textContent = '❌ Por favor, selecione uma eletiva.';
+        return;
+    }
+
+    showLoading(messageElement, `Buscando alunos para "${eletiva}"...`);
+    corpoTabela.innerHTML = '<tr><td colspan="5">Carregando...</td></tr>';
+
+    const urlBusca = `${GAS_ENDPOINT_URL}?action=getMapaEletiva&eletiva=${encodeURIComponent(eletiva)}`;
+
+    try {
+        const resposta = await fetch(urlBusca);
+        const resultado = await resposta.json();
+
+        corpoTabela.innerHTML = '';
+        messageElement.textContent = '';
+
+        if (resultado.status === 'success' && resultado.alunos && resultado.alunos.length > 0) {
+            resultado.alunos.forEach(aluno => {
+                const row = corpoTabela.insertRow();
+                row.insertCell(0).textContent = aluno.matricula || 'N/A';
+                row.insertCell(1).textContent = aluno.nome || 'N/A';
+                row.insertCell(2).textContent = aluno.turmaOrigem || 'N/A';
+                row.insertCell(3).textContent = aluno.professor || 'N/A';
+                row.insertCell(4).textContent = '';
+            });
+            messageElement.style.color = 'green';
+            messageElement.textContent = `✅ ${resultado.alunos.length} alunos encontrados na eletiva "${eletiva}".`;
+        } else {
+            corpoTabela.innerHTML = '<tr><td colspan="5">Nenhum aluno registrado ou dados incompletos.</td></tr>';
+            messageElement.style.color = 'orange';
+            messageElement.textContent = `⚠️ ${resultado.message || 'Nenhum aluno encontrado para a eletiva selecionada.'}`;
+        }
+    } catch (error) {
+        messageElement.style.color = 'red';
+        messageElement.textContent = '❌ Erro ao carregar o mapa. Verifique a conexão com o GAS.';
+        corpoTabela.innerHTML = '<tr><td colspan="5">Erro de rede.</td></tr>';
+    }
+});
+
+// Botão GERAR PDF PARA NOTAS
+document.getElementById('btn-gerar-pdf').addEventListener('click', async function() {
+    const select = document.getElementById('mapa-eletiva-select');
+    const eletiva = select ? select.value : '';
+    const messageElement = document.getElementById('mapa-message');
+
+    if (!eletiva) {
+        messageElement.style.color = 'red';
+        messageElement.textContent = '❌ Selecione uma eletiva antes de gerar o PDF.';
+        return;
+    }
+
+    showLoading(messageElement, 'Solicitando geração do PDF...');
+
+    const urlPDF = `${GAS_ENDPOINT_URL}?action=generateMapaPDF&eletiva=${encodeURIComponent(eletiva)}`;
+
+    try {
+        const resposta = await fetch(urlPDF);
+        const resultado = await resposta.json();
+
+        if (resultado.status === 'success' && resultado.pdfUrl) {
+            messageElement.style.color = 'green';
+            messageElement.textContent = '✅ PDF gerado com sucesso! Abrindo em nova aba...';
+            window.open(resultado.pdfUrl, '_blank');
+        } else {
+            messageElement.style.color = 'red';
+            messageElement.textContent = `❌ Erro ao gerar PDF: ${resultado.message}`;
+        }
+    } catch (error) {
+        messageElement.style.color = 'red';
+        messageElement.textContent = '❌ Erro de comunicação ao gerar o PDF. Verifique o GAS.';
+    }
+});
 
 
 // ... (Restante das funções: btn-ver-mapa, btn-gerar-pdf) ...
@@ -435,6 +560,7 @@ document.getElementById('btn-gerar-pdf').addEventListener('click', async functio
 });
 
 */
+
 
 
 
