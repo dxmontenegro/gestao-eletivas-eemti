@@ -1,7 +1,7 @@
 // script.js (Frontend Logic)
 
 // ----------------------------------------------------------------------
-// URL CONFIRMADA (Retirada de sua mensagem):
+// URL CORRIGIDA E ATIVA (Confirmada pela Implantação)
 // ----------------------------------------------------------------------
 const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbwBIai5AvIrteYrmPlfD_EpTTJi00TWRR8pzzPch-J-45UePzKqIFXESUtZxH4EYncH/exec';
 
@@ -32,14 +32,14 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 
-// --- 2. Login Simples ---
+// --- 2. Login Simples (CORRIGIDO com .trim() e .toLowerCase()) ---
 document.getElementById('login-form').addEventListener('submit', function(e) {
     e.preventDefault();
-    const user = document.getElementById('username').value;
-    const pass = document.getElementById('password').value;
+    const user = document.getElementById('username').value.trim(); 
+    const pass = document.getElementById('password').value.trim(); 
     const message = document.getElementById('login-message');
     
-    if (user === 'monte' && pass === '1234') {
+    if (user.toLowerCase() === 'monte' && pass === '1234') {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-system').style.display = 'block';
         message.textContent = '';
@@ -52,7 +52,7 @@ document.getElementById('login-form').addEventListener('submit', function(e) {
 });
 
 
-// --- 3. Comunicação Centralizada com o GAS (CORREÇÃO CRÍTICA AQUI) ---
+// --- 3. Comunicação Centralizada com o GAS (CORREÇÃO DE FORMATO APLICADA) ---
 
 function showLoading(messageElement) {
     messageElement.textContent = '⏳ Enviando dados...';
@@ -68,7 +68,7 @@ async function sendDataToGAS(action, formId, messageId) {
     const formData = new FormData(form);
     const params = new URLSearchParams(); 
     
-    // Configura os parâmetros no formato esperado pelo Apps Script (action=X&campo1=Y&...)
+    // Configura os parâmetros no formato esperado pelo Apps Script
     params.append('action', action);
     for (const [key, value] of formData.entries()) {
         params.append(key, value);
@@ -79,6 +79,7 @@ async function sendDataToGAS(action, formId, messageId) {
             method: 'POST',
             body: params,
             headers: {
+                // ESSENCIAL para que o Apps Script consiga ler o e.parameter
                 'Content-Type': 'application/x-www-form-urlencoded' 
             }
         });
@@ -89,7 +90,7 @@ async function sendDataToGAS(action, formId, messageId) {
             result = await response.json();
         } catch (jsonError) {
             if (response.ok) {
-                // Sucesso na Planilha (HTTP 200), mas falha ao ler a resposta (Problema comum)
+                // Sucesso na Planilha (HTTP 200), mas falha ao ler a resposta
                 alert(`✅ Sucesso! Os dados foram salvos na Planilha, mas houve uma falha ao processar a resposta. (Favor verificar a Planilha)`);
                 form.reset(); 
                 loadDynamicData(); 
@@ -115,6 +116,7 @@ async function sendDataToGAS(action, formId, messageId) {
     } catch (error) {
         console.error('Erro de Processamento/Conexão:', error);
         messageElement.style.color = 'red';
+        // Mensagem detalhada para ajudar no diagnóstico
         messageElement.textContent = `❌ Erro de conexão com o servidor. Detalhe: ${error.message}.`;
     }
 }
