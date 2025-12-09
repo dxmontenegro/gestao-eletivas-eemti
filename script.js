@@ -567,3 +567,4 @@ document.getElementById('btn-gerar-pdf').addEventListener('click', async functio
 
 
 
+
