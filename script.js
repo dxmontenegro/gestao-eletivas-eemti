@@ -1,253 +1,426 @@
-// =======================================================
-//  SISTEMA ESCOLAR — VERSÃO FIRESTORE (SEM APPS SCRIPT)
-// =======================================================
+// script.js - Versão Firestore (compatível com seu HTML original)
+// Requisitos: index.html deve inicializar Firebase e expor "db" globalmente.
 
-// Firestore já foi inicializado no index.html
-// Aqui usamos a referência global "db"
-
-// =============================================
-// 1. Controle de Abas
-// =============================================
+// -----------------------------
+// 1. Controle de Abas e Inicial
+// -----------------------------
 function showTab(tabId) {
-    document.querySelectorAll('.tab-content').forEach(tab => {
-        tab.style.display = 'none';
-        tab.classList.remove('active');
-    });
+  document.querySelectorAll('.tab-content').forEach(t => {
+    t.style.display = 'none';
+    t.classList.remove('active');
+  });
+  const active = document.getElementById(tabId);
+  if (active) {
+    active.style.display = 'block';
+    active.classList.add('active');
+  }
+  document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+  const btn = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
+  if (btn) btn.classList.add('active');
 
-    const activeTab = document.getElementById(tabId);
-    activeTab.style.display = 'block';
-    activeTab.classList.add('active');
-
-    document.querySelectorAll('.tab-button').forEach(btn => {
-        btn.classList.remove('active');
-    });
-
-    document.querySelector(`.tab-button[data-tab="${tabId}"]`).classList.add('active');
+  if (tabId === 'mapa-eletiva-tab') {
+    loadDynamicDataForMap();
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    showTab('aluno-tab');
-    document.getElementById('username').value = 'monte';
-    document.getElementById('password').value = '1234';
-    loadDynamicData(); 
+  showTab('aluno-tab');
+  const u = document.getElementById('username');
+  const p = document.getElementById('password');
+  if (u) u.value = 'monte';
+  if (p) p.value = '1234';
+  loadDynamicData();
 });
 
-// =============================================
-// 2. Login (simples)
-// =============================================
-document.getElementById('login-form').addEventListener('submit', function(e) {
+// -----------------------------
+// 2. Login simples
+// -----------------------------
+const loginForm = document.getElementById('login-form');
+if (loginForm) {
+  loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
-
-    if (
-        document.getElementById('username').value === "monte" &&
-        document.getElementById('password').value === "1234"
-    ) {
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('main-system').style.display = 'block';
-        loadDynamicData();
+    const user = document.getElementById('username').value.trim().toLowerCase();
+    const pass = document.getElementById('password').value.trim();
+    const msg = document.getElementById('login-message');
+    if (user === 'monte' && pass === '1234') {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('main-system').style.display = 'block';
+      if (msg) msg.textContent = '';
+      loadDynamicData();
     } else {
-        document.getElementById('login-message').textContent = "Usuário ou senha incorretos.";
+      if (msg) {
+        msg.style.color = 'red';
+        msg.textContent = 'Usuário ou senha inválidos.';
+      }
     }
-});
+  });
+}
 
-// =============================================
-// 3. CADASTRAR ALUNO (Firestore)
-// =============================================
-document.getElementById('form-aluno').addEventListener('submit', async (e) => {
+// -----------------------------
+// Helpers Firestore
+// -----------------------------
+async function docByField(collectionName, field, value) {
+  const q = await db.collection(collectionName).where(field, '==', value).limit(1).get();
+  if (!q.empty) return { id: q.docs[0].id, data: q.docs[0].data(), ref: q.docs[0].ref };
+  return null;
+}
+
+function setMessage(id, text, color = 'black') {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.style.color = color;
+  el.textContent = text;
+}
+
+// -----------------------------
+// 3. Cadastrar Aluno (sem matrícula manual)
+// -----------------------------
+const formAluno = document.getElementById('form-aluno');
+if (formAluno) {
+  formAluno.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const msg = document.getElementById('aluno-message');
+    const nome = document.getElementById('aluno-nome').value.trim();
+    const turma = document.getElementById('aluno-turma').value.trim();
+    const msgId = 'aluno-message';
 
-    const nome = e.target.nome.value;
-    const turma = e.target.turma.value;
-    const matricula = Date.now().toString(); // ID único automático
+    if (!nome || !turma) {
+      setMessage(msgId, 'Preencha nome e turma.', 'red'); return;
+    }
 
-    await db.collection('alunos').doc(matricula).set({
+    try {
+      const docRef = await db.collection('alunos').add({
         nome,
         turma,
-        data: new Date()
-    });
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      setMessage(msgId, 'Aluno cadastrado com sucesso.', 'green');
+      e.target.reset();
+      loadDynamicData(); // atualiza selects
+    } catch (err) {
+      console.error(err);
+      setMessage(msgId, 'Erro ao cadastrar aluno.', 'red');
+    }
+  });
+}
 
-    msg.textContent = "Aluno cadastrado!";
-    msg.style.color = "green";
-    e.target.reset();
-});
-
-// =============================================
-// 4. CADASTRAR PROFESSOR
-// =============================================
-document.getElementById('form-professor').addEventListener('submit', async (e) => {
+// -----------------------------
+// 4. Cadastrar Professor
+// -----------------------------
+const formProfessor = document.getElementById('form-professor');
+if (formProfessor) {
+  formProfessor.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const msg = document.getElementById('professor-message');
+    const nome = document.getElementById('professor-nome').value.trim();
+    const msgId = 'professor-message';
+    if (!nome) { setMessage(msgId, 'Informe o nome do professor.', 'red'); return; }
 
-    const nome = e.target.nome.value;
-
-    await db.collection('professores').doc(nome).set({
+    try {
+      // Salva documento com id gerado; campo nome permite buscas
+      await db.collection('professores').add({
         nome,
-        eletiva: null
-    });
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      setMessage(msgId, 'Professor cadastrado.', 'green');
+      e.target.reset();
+      loadDynamicData();
+    } catch (err) {
+      console.error(err);
+      setMessage(msgId, 'Erro ao cadastrar professor.', 'red');
+    }
+  });
+}
 
-    msg.textContent = "Professor cadastrado!";
-    msg.style.color = "green";
-    e.target.reset();
-    loadDynamicData();
-});
-
-// =============================================
-// 5. CADASTRAR ELETIVA
-// =============================================
-document.getElementById('form-eletiva').addEventListener('submit', async (e) => {
+// -----------------------------
+// 5. Cadastrar Eletiva
+// -----------------------------
+const formEletiva = document.getElementById('form-eletiva');
+if (formEletiva) {
+  formEletiva.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const msg = document.getElementById('eletiva-message');
+    const nome = document.getElementById('eletiva-nome').value.trim();
+    const vagas = Number(document.getElementById('eletiva-vagas').value);
+    const msgId = 'eletiva-message';
+    if (!nome || !vagas) { setMessage(msgId, 'Informe nome e vagas.', 'red'); return; }
 
-    const nome = e.target.nome.value;
-    const vagas = Number(e.target.vagas.value);
-
-    await db.collection('eletivas').doc(nome).set({
+    try {
+      // salva eletiva com id próprio (nome) para facilitar buscas; normaliza removendo espaços
+      const id = nome.trim();
+      await db.collection('eletivas').doc(id).set({
         nome,
         vagas,
-        professor: null
-    });
+        professor: null,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      setMessage(msgId, 'Eletiva cadastrada.', 'green');
+      e.target.reset();
+      loadDynamicData();
+    } catch (err) {
+      console.error(err);
+      setMessage(msgId, 'Erro ao cadastrar eletiva.', 'red');
+    }
+  });
+}
 
-    msg.textContent = "Eletiva cadastrada!";
-    msg.style.color = "green";
-    e.target.reset();
-    loadDynamicData();
-});
-
-// =============================================
-// 6. VINCULAR PROFESSOR → ELETIVA
-// =============================================
-document.getElementById('form-vincular-professor').addEventListener('submit', async (e) => {
+// -----------------------------
+// 6. Vincular Professor à Eletiva
+// -----------------------------
+const formVinculo = document.getElementById('form-vincular-professor');
+if (formVinculo) {
+  formVinculo.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const msg = document.getElementById('vinculo-professor-message');
+    const professor = document.getElementById('vinculo-professor').value;
+    const eletiva = document.getElementById('vinculo-eletiva').value;
+    const msgId = 'vinculo-professor-message';
+    if (!professor || !eletiva) { setMessage(msgId, 'Selecione professor e eletiva.', 'red'); return; }
 
-    const professor = e.target.professor.value;
-    const eletiva = e.target.eletiva.value;
+    try {
+      // Atualiza eletiva.doc -> professor
+      await db.collection('eletivas').doc(eletiva).update({ professor });
+      // Opcional: atualiza professor document para referência (procura doc do professor pelo nome)
+      const profDoc = await docByField('professores', 'nome', professor);
+      if (profDoc) {
+        await profDoc.ref.update({ eletiva });
+      }
+      setMessage(msgId, 'Professor vinculado à eletiva.', 'green');
+      loadDynamicData();
+    } catch (err) {
+      console.error(err);
+      setMessage(msgId, 'Erro ao vincular professor.', 'red');
+    }
+  });
+}
 
-    // professor recebe essa eletiva
-    await db.collection('professores').doc(professor).update({
-        eletiva
-    });
-
-    // eletiva recebe esse professor
-    await db.collection('eletivas').doc(eletiva).update({
-        professor
-    });
-
-    msg.textContent = "Vínculo estabelecido!";
-    msg.style.color = "green";
-    loadDynamicData();
-});
-
-// =============================================
-// 7. REGISTRAR ALUNO NA ELETIVA
-// =============================================
-document.getElementById('form-registrar-aluno').addEventListener('submit', async (e) => {
+// -----------------------------
+// 7. Registrar Aluno na Eletiva (busca por NOME)
+// -----------------------------
+const formRegistrar = document.getElementById('form-registrar-aluno');
+if (formRegistrar) {
+  formRegistrar.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const msg = document.getElementById('registro-aluno-message');
+    const busca = document.getElementById('registro-matricula').value.trim(); // nome do aluno (campo reaproveitado)
+    const eletiva = document.getElementById('registro-eletiva').value;
+    const msgId = 'registro-aluno-message';
+    if (!busca || !eletiva) { setMessage(msgId, 'Informe o nome do aluno e a eletiva.', 'red'); return; }
 
-    const matricula = e.target.matricula.value;
-    const eletiva = e.target.eletiva.value;
-
-    await db.collection('registro').add({
-        matricula,
+    try {
+      // tenta achar aluno pelo nome exato (case-sensitive igual ao cadastro)
+      const alunoQuery = await db.collection('alunos').where('nome', '==', busca).limit(1).get();
+      if (alunoQuery.empty) {
+        setMessage(msgId, 'Aluno não encontrado. Cadastre-o antes ou verifique o nome exato.', 'red');
+        return;
+      }
+      const alunoDoc = alunoQuery.docs[0];
+      // grava no registro: usamos studentId (doc id), eletiva e timestamp
+      await db.collection('registro').add({
+        studentId: alunoDoc.id,
         eletiva,
-        data: new Date()
-    });
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      setMessage(msgId, 'Aluno registrado na eletiva.', 'green');
+      e.target.reset();
+    } catch (err) {
+      console.error(err);
+      setMessage(msgId, 'Erro ao registrar aluno.', 'red');
+    }
+  });
+}
 
-    msg.textContent = "Aluno registrado!";
-    msg.style.color = "green";
-    e.target.reset();
-});
-
-// =============================================
-// 8. CARREGAR LISTAS DINÂMICAS
-// =============================================
+// -----------------------------
+// 8. Carregar dados dinâmicos (selects)
+// -----------------------------
 async function loadDynamicData() {
-    const profSnap = await db.collection('professores').get();
-    const eletivaSnap = await db.collection('eletivas').get();
+  try {
+    // professores
+    const profSnap = await db.collection('professores').orderBy('nome').get();
+    const profs = profSnap.docs.map(d => d.data().nome);
 
-    // preencher selects
-    fillSelect("vinculo-professor", profSnap.docs.map(d => d.data().nome));
-    fillSelect("vinculo-eletiva", eletivaSnap.docs.map(d => d.data().nome));
-    fillSelect("registro-eletiva", eletivaSnap.docs.map(d => d.data().nome));
-    fillSelect("mapa-eletiva-select", eletivaSnap.docs.map(d => d.data().nome));
+    // eletivas
+    const eletSnap = await db.collection('eletivas').orderBy('nome').get();
+    const eletivas = eletSnap.docs.map(d => d.data().nome);
+
+    fillSelect('vinculo-professor', profs, 'Selecione o Professor');
+    fillSelect('vinculo-eletiva', eletivas, 'Selecione a Eletiva');
+    fillSelect('registro-eletiva', eletivas, 'Selecione a Eletiva');
+    fillSelect('mapa-eletiva-select', eletivas, 'Selecione a Eletiva');
+  } catch (err) {
+    console.error('Erro ao carregar dados dinâmicos', err);
+  }
 }
 
-function fillSelect(selectId, array) {
-    const s = document.getElementById(selectId);
-    s.innerHTML = '<option disabled selected>Selecione...</option>';
-
-    array.forEach(item => {
-        const op = document.createElement("option");
-        op.value = item;
-        op.textContent = item;
-        s.appendChild(op);
-    });
+function fillSelect(id, arr, placeholder = 'Selecione...') {
+  const s = document.getElementById(id);
+  if (!s) return;
+  s.innerHTML = `<option value="" disabled selected>${placeholder}</option>`;
+  if (!arr || arr.length === 0) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.disabled = true;
+    opt.selected = true;
+    opt.textContent = '— Nenhum registro —';
+    s.appendChild(opt);
+    return;
+  }
+  arr.forEach(item => {
+    const opt = document.createElement('option');
+    opt.value = item;
+    opt.textContent = item;
+    s.appendChild(opt);
+  });
 }
 
-// =============================================
-// 9. VER MAPA DA ELETIVA
-// =============================================
+// -----------------------------
+// 9. Ver mapa da eletiva (oculta matrícula)
+// -----------------------------
 document.getElementById('btn-ver-mapa').addEventListener('click', async () => {
-    const eletiva = document.getElementById("mapa-eletiva-select").value;
-    const msg = document.getElementById("mapa-message");
-    const tbody = document.querySelector("#mapa-alunos-table tbody");
+  const eletiva = document.getElementById('mapa-eletiva-select').value;
+  const msgId = 'mapa-message';
+  const tbody = document.querySelector('#mapa-alunos-table tbody');
 
-    if (!eletiva) {
-        msg.textContent = "Selecione uma eletiva.";
-        msg.style.color = "red";
-        return;
+  if (!eletiva) { setMessage(msgId, 'Selecione uma eletiva.', 'red'); return; }
+
+  try {
+    setMessage(msgId, 'Carregando...', 'blue');
+    tbody.innerHTML = '<tr><td colspan="5">Carregando...</td></tr>';
+
+    // busca registros da eletiva
+    const regsSnap = await db.collection('registro').where('eletiva', '==', eletiva).get();
+
+    // busca professor vinculado na eletiva
+    const eletDoc = await db.collection('eletivas').doc(eletiva).get();
+    const professor = eletDoc.exists ? (eletDoc.data().professor || 'Não Vinculado') : 'Não Vinculado';
+
+    tbody.innerHTML = '';
+
+    if (regsSnap.empty) {
+      tbody.innerHTML = '<tr><td colspan="5">Nenhum aluno registrado.</td></tr>';
+      setMessage(msgId, 'Nenhum aluno registrado.', 'orange');
+      hideMatriculaColumn(true);
+      return;
     }
 
-    tbody.innerHTML = "<tr><td colspan='5'>Carregando...</td></tr>";
+    // percorre registros e monta tabela
+    for (const doc of regsSnap.docs) {
+      const r = doc.data();
+      // pega aluno pelo studentId
+      const studentRef = db.collection('alunos').doc(r.studentId);
+      const studentSnap = await studentRef.get();
+      if (!studentSnap.exists) continue;
+      const aluno = studentSnap.data();
 
-    // busca registros
-    const registros = await db.collection("registro")
-        .where("eletiva", "==", eletiva)
-        .get();
-
-    tbody.innerHTML = "";
-
-    if (registros.empty) {
-        msg.textContent = "Nenhum aluno registrado.";
-        msg.style.color = "orange";
-        return;
+      const tr = document.createElement('tr');
+      // coluna Matrícula ficará oculta (opção 2). Para compatibilidade, ainda criamos a célula, mas deixamos vazia.
+      tr.innerHTML = `
+        <td class="col-matricula"></td>
+        <td>${escapeHtml(aluno.nome || '')}</td>
+        <td>${escapeHtml(aluno.turma || '')}</td>
+        <td>${escapeHtml(professor)}</td>
+        <td></td>
+      `;
+      tbody.appendChild(tr);
     }
 
-    // busca professor
-    const professorDoc = await db.collection("eletivas").doc(eletiva).get();
-    const professor = professorDoc.data().professor || "Não vinculado";
+    // oculta coluna matrícula no mapa (tanto header quanto células)
+    hideMatriculaColumn(true);
 
-    msg.textContent = "Mapa carregado!";
-    msg.style.color = "green";
-
-    for (let doc of registros.docs) {
-        const r = doc.data();
-
-        // pega aluno
-        const alunoDoc = await db.collection("alunos").doc(r.matricula).get();
-        if (!alunoDoc.exists) continue;
-        const a = alunoDoc.data();
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${r.matricula}</td>
-            <td>${a.nome}</td>
-            <td>${a.turma}</td>
-            <td>${professor}</td>
-            <td></td>
-        `;
-        tbody.appendChild(tr);
-    }
+    setMessage(msgId, `${regsSnap.size} alunos carregados.`, 'green');
+  } catch (err) {
+    console.error(err);
+    setMessage('mapa-message', 'Erro ao carregar mapa.', 'red');
+  }
 });
 
-// =============================================
-// 10. GERAR PDF (SEM APPS SCRIPT)
-// =============================================
-document.getElementById("btn-gerar-pdf").addEventListener("click", () => {
-    window.print(); // usa o próprio navegador!
+// -----------------------------
+// 10. Gerar PDF / Imprimir (abre nova janela com mapa)
+// -----------------------------
+document.getElementById('btn-gerar-pdf').addEventListener('click', async () => {
+  const eletiva = document.getElementById('mapa-eletiva-select').value;
+  const msgId = 'mapa-message';
+  const tbody = document.querySelector('#mapa-alunos-table tbody');
+
+  if (!eletiva) { setMessage(msgId, 'Selecione uma eletiva antes de gerar PDF.', 'red'); return; }
+  if (!tbody || tbody.children.length === 0) { setMessage(msgId, 'Gere o mapa antes de imprimir.', 'red'); return; }
+
+  // Monta HTML do mapa para impressão
+  const title = `Mapa - ${eletiva}`;
+  const eletDoc = await db.collection('eletivas').doc(eletiva).get();
+  const professor = eletDoc.exists ? (eletDoc.data().professor || 'Não Vinculado') : 'Não Vinculado';
+
+  let rowsHtml = '';
+  Array.from(tbody.children).forEach(tr => {
+    const tds = tr.querySelectorAll('td');
+    if (tds.length < 4) return;
+    const nome = tds[1].textContent;
+    const turma = tds[2].textContent;
+    const prof = tds[3].textContent;
+    rowsHtml += `<tr><td>${escapeHtml(nome)}</td><td>${escapeHtml(turma)}</td><td>${escapeHtml(prof)}</td></tr>`;
+  });
+
+  const html = `
+    <html>
+      <head>
+        <title>${escapeHtml(title)}</title>
+        <style>
+          body{font-family:Arial,Helvetica,sans-serif;padding:18px;}
+          h2{margin:0 0 12px 0;}
+          table{width:100%;border-collapse:collapse;margin-top:12px;}
+          th,td{border:1px solid #ddd;padding:8px;text-align:left;}
+          th{background:#f4f6f8;}
+          .meta{margin-top:8px;font-size:14px;color:#444;}
+        </style>
+      </head>
+      <body>
+        <h2>${escapeHtml(title)}</h2>
+        <div class="meta"><strong>Professor:</strong> ${escapeHtml(professor)}</div>
+        <table>
+          <thead><tr><th>Nome</th><th>Turma</th><th>Professor</th></tr></thead>
+          <tbody>${rowsHtml}</tbody>
+        </table>
+        <script>window.print();</script>
+      </body>
+    </html>
+  `;
+
+  const w = window.open('', '_blank');
+  if (!w) {
+    setMessage(msgId, 'Impossível abrir nova janela (bloqueador de pop-up?).', 'red');
+    return;
+  }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
 });
+
+// -----------------------------
+// 11. Esconder/mostrar coluna Matrícula (opção 2)
+// -----------------------------
+function hideMatriculaColumn(hide) {
+  // header
+  const ths = document.querySelectorAll('#mapa-alunos-table thead th');
+  if (ths && ths.length > 0) {
+    // primeira coluna é Matrícula (index 0)
+    if (hide) ths[0].style.display = 'none';
+    else ths[0].style.display = '';
+  }
+  // linhas
+  document.querySelectorAll('#mapa-alunos-table tbody tr').forEach(tr => {
+    const td = tr.querySelector('.col-matricula');
+    if (td) td.style.display = hide ? 'none' : '';
+  });
+}
+
+// -----------------------------
+// 12. Utilitários
+// -----------------------------
+function escapeHtml(s) {
+  if (!s && s !== 0) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
 
 
 
@@ -530,6 +703,7 @@ document.getElementById('btn-gerar-pdf').addEventListener('click', async functio
 });
 
 */
+
 
 
 
