@@ -139,15 +139,15 @@ document.getElementById('form-vincular-professor').addEventListener('submit', (e
 
 document.getElementById('form-registrar-aluno').addEventListener('submit', (e) => {
     e.preventDefault();
-    // O campo que enviamos para o GAS deve ser o nome/matrícula do aluno, que agora é o select "registro-aluno-nome"
+    // O campo que enviamos para o GAS será o nome do aluno do select "registro-aluno-nome"
     const alunoSelect = document.getElementById('registro-aluno-nome');
     if (alunoSelect) {
-        // Renomeia o campo do aluno para o que o GAS espera (historicamente 'matricula' ou 'alunoNome')
+        // O GAS espera o parâmetro 'alunoNome' conforme definido no Code.gs
         alunoSelect.name = 'alunoNome'; 
     }
     sendDataToGAS('registrarAluno', 'form-registrar-aluno', 'registro-aluno-message');
-    // Restaura o nome original para evitar problemas com outros scripts (se houver)
-    if (alunoSelect) alunoSelect.name = 'alunoNome';
+    // Restaura o nome original (opcional, mas boa prática)
+    if (alunoSelect) alunoSelect.name = 'alunoNome'; 
 });
 
 
@@ -326,7 +326,6 @@ document.getElementById('btn-gerar-pdf').addEventListener('click', async functio
         messageElement.textContent = '❌ Erro de comunicação ao gerar o PDF. Verifique o GAS.';
     }
 });
-
 /*
 
 
@@ -602,6 +601,7 @@ document.getElementById('btn-gerar-pdf').addEventListener('click', async functio
 });
 
 */
+
 
 
 
