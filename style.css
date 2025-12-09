@@ -1,0 +1,150 @@
+/* style.css - (Atualizado) */
+
+/* Variáveis de Cores */
+:root {
+    --primary-color: #007bff; /* Azul vibrante */
+    --secondary-color: #28a745; /* Verde sucesso */
+    --background-color: #f4f7f9;
+    --card-color: #ffffff;
+    --text-color: #34495e;
+    --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.05);
+    --shadow-hover: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Estilos Globais e Fonte */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column; /* Para incluir o cabeçalho da escola no topo */
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* NOVO: Cabeçalho EEMTI DRAGÃO DO MAR */
+.school-header {
+    width: 100%;
+    background-color: #1a2a47; /* Azul marinho escuro */
+    color: white;
+    padding: 15px 0;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    margin-bottom: 20px;
+}
+.school-header h1 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 0;
+    color: white;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/* Container Principal do Sistema (Após Login) */
+#main-system {
+    width: 100%;
+    max-width: 1100px;
+    margin-top: 20px;
+    padding: 0 20px;
+}
+
+/* Componente Card (Usado no Login e Abas) */
+.card {
+    background-color: var(--card-color);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-light);
+    transition: box-shadow 0.3s ease-in-out;
+    margin-bottom: 20px;
+}
+.card:hover {
+    box-shadow: var(--shadow-hover);
+}
+
+/* ... (O restante do CSS para login, menu, botões e forms é o mesmo) ... */
+
+/* --- Menu de Abas (Navigation) --- */
+#menu-abas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 25px;
+    padding: 10px;
+    background-color: var(--card-color);
+    border-radius: 8px;
+    box-shadow: var(--shadow-light);
+}
+
+.tab-button {
+    background-color: #e9ecef;
+    color: var(--text-color);
+    border: none;
+    padding: 10px 18px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+.tab-button.active {
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.4);
+    transform: none;
+}
+
+/* --- Estilos do Mapa de Eletivas --- */
+.filter-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px dashed #ced4da;
+    border-radius: 8px;
+}
+
+.filter-controls label, .filter-controls select {
+    margin: 0;
+    padding: 0;
+}
+
+.filter-controls select {
+    width: 250px;
+}
+
+.table-container {
+    overflow-x: auto; /* Permite rolar a tabela em telas pequenas */
+}
+
+#mapa-alunos-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+#mapa-alunos-table th, #mapa-alunos-table td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: left;
+}
+
+#mapa-alunos-table th {
+    background-color: #f8f9fa;
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+#mapa-alunos-table tbody tr:nth-child(even) {
+    background-color: #f3f3f3;
+}
+
+/* Coluna de Nota com largura maior */
+.col-nota {
+    width: 150px; 
+    font-weight: bold;
+    color: var(--primary-color);
+}
