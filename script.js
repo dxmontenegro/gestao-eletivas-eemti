@@ -1,7 +1,7 @@
 // script.js (Frontend Logic)
 
 // ----------------------------------------------------------------------
-// URL CORRIGIDA E ATIVA (Confirmada pela Implantação)
+// URL FINAL E CORRETA (Confirmada pela Implantação)
 // ----------------------------------------------------------------------
 const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbwBIai5AvIrteYrmPlfD_EpTTJi00TWRR8pzzPch-J-45UePzKqIFXESUtZxH4EYncH/exec';
 
@@ -116,7 +116,6 @@ async function sendDataToGAS(action, formId, messageId) {
     } catch (error) {
         console.error('Erro de Processamento/Conexão:', error);
         messageElement.style.color = 'red';
-        // Mensagem detalhada para ajudar no diagnóstico
         messageElement.textContent = `❌ Erro de conexão com o servidor. Detalhe: ${error.message}.`;
     }
 }
