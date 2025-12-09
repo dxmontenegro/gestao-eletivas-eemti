@@ -1,72 +1,160 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Gestão de Eletivas</title>
-    <style>
-        /* Estilos básicos para o container de login */
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f4f4;
-        }
-        .login-container {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-        input[type="text"], input[type="password"], button {
-            width: 90%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            cursor: pointer;
-            border: none;
-        }
-    </style>
+    <title>⚡ Gestão de Eletivas N.E.M.</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div class="login-container">
-    <h2>Login do Sistema</h2>
-    <form id="loginForm" onsubmit="validarLogin(event)">
-        
-        <input type="text" id="usuario" placeholder="Usuário (monte)" required>
-        <input type="password" id="senha" placeholder="Senha (1234)" required>
-        
-        <button type="submit">Entrar</button>
-    </form>
-</div>
+    <header class="school-header">
+        <h1>EEMTI DRAGÃO DO MAR</h1>
+    </header>
 
-<script>
-    // Função que lida com o login
-    function validarLogin(event) {
-        // ESSENCIAL: Impede que o formulário recarregue a página, o que estava causando o problema.
-        event.preventDefault(); 
-        
-        const usuario = document.getElementById('usuario').value;
-        const senha = document.getElementById('senha').value;
+    <div id="login-screen" class="card">
+        <h2>🔑 Acesso ao Painel de Gestão</h2>
+        <form id="login-form">
+            <label for="username">Usuário:</label>
+            <input type="text" id="username" name="username" required value="monte">
 
-        // Credenciais: monte / 1234
-        if (usuario === 'monte' && senha === '1234') {
-            // Se tudo estiver OK, redireciona para a página principal do sistema (menu.html)
-            window.location.href = 'menu.html'; 
-        } else {
-            alert('Usuário ou senha inválidos. Tente novamente.');
-        }
-    }
-</script>
+            <label for="password">Senha:</label>
+            <input type="password" id="password" name="password" required value="1234">
 
+            <button type="submit" class="btn btn-primary">Entrar</button>
+            <p id="login-message" class="message"></p>
+        </form>
+    </div>
+
+    <div id="main-system" style="display: none;">
+        <header>
+            <h1>✨ Painel de Gestão de Eletivas</h1>
+            <p>Seja bem-vindo(a), Monte!</p>
+        </header>
+
+        <nav id="menu-abas">
+            <button class="tab-button active" data-tab="aluno-tab" onclick="showTab('aluno-tab')">🧑‍ Cadastro Aluno</button>
+            <button class="tab-button" data-tab="professor-tab" onclick="showTab('professor-tab')">👩‍ Cadastro Professor</button>
+            <button class="tab-button" data-tab="eletiva-tab" onclick="showTab('eletiva-tab')">📚 Cadastro Eletiva</button>
+            <button class="tab-button" data-tab="registro-eletiva-tab" onclick="showTab('registro-eletiva-tab')">🔗 Vincular Professor</button>
+            <button class="tab-button" data-tab="registro-aluno-tab" onclick="showTab('registro-aluno-tab')">✏️ Registrar Aluno</button>
+            <button class="tab-button" data-tab="mapa-eletiva-tab" onclick="showTab('mapa-eletiva-tab')">🗺️ Ver Mapa de Eletiva</button>
+        </nav>
+
+        <div id="content-area">
+            
+            <div id="aluno-tab" class="tab-content active card">
+                <h3>Cadastrar Novo Aluno</h3>
+                <form id="form-aluno">
+                    <label for="aluno-nome">Nome Completo:</label>
+                    <input type="text" id="aluno-nome" name="nome" placeholder="Ex: João da Silva" required>
+                    
+                    <label for="aluno-turma">Turma de Origem:</label>
+                    <select id="aluno-turma" name="turma" required>
+                        <option value="" disabled selected>Selecione a Turma</option>
+                        <option value="1A">1º A</option><option value="1B">1º B</option><option value="1C">1º C</option>
+                        <option value="2A">2º A</option><option value="2B">2º B</option>
+                        <option value="3A">3º A</option><option value="3B">3º B</option><option value="3C">3º C</option>
+                    </select>
+
+                    <button type="submit" class="btn btn-success">Salvar Aluno</button>
+                    <p id="aluno-message" class="message"></p>
+                </form>
+            </div>
+
+            <div id="professor-tab" class="tab-content card">
+                <h3>Cadastrar Novo Professor</h3>
+                <form id="form-professor">
+                    <label for="professor-nome">Nome do Professor:</label>
+                    <input type="text" id="professor-nome" name="nome" placeholder="Ex: Maria Souza" required>
+                    <button type="submit" class="btn btn-success">Salvar Professor</button>
+                    <p id="professor-message" class="message"></p>
+                </form>
+            </div>
+            
+            <div id="eletiva-tab" class="tab-content card">
+                <h3>Cadastrar Nova Eletiva</h3>
+                <form id="form-eletiva">
+                    <label for="eletiva-nome">Nome da Eletiva:</label>
+                    <input type="text" id="eletiva-nome" name="nome" placeholder="Ex: Robótica e Programação" required>
+                    <label for="eletiva-vagas">Vagas Máximas:</label>
+                    <input type="number" id="eletiva-vagas" name="vagas" required min="10" value="30">
+                    <button type="submit" class="btn btn-success">Salvar Eletiva</button>
+                    <p id="eletiva-message" class="message"></p>
+                </form>
+            </div>
+
+            <div id="registro-eletiva-tab" class="tab-content card">
+                <h3>Vincular Professor à Eletiva</h3>
+                <form id="form-vincular-professor">
+                    <label for="vinculo-professor">Escolha o Professor:</label>
+                    <select id="vinculo-professor" name="professor" required>
+                        <option value="" disabled selected>Carregando Professores...</option>
+                    </select>
+
+                    <label for="vinculo-eletiva">Escolha a Eletiva:</label>
+                    <select id="vinculo-eletiva" name="eletiva" required>
+                        <option value="" disabled selected>Carregando Eletivas...</option>
+                    </select>
+                    
+                    <button type="submit" class="btn btn-success">Vincular Professor</button>
+                    <p id="vinculo-professor-message" class="message"></p>
+                </form>
+            </div>
+
+            <div id="registro-aluno-tab" class="tab-content card">
+                <h3>Escolha de Eletiva pelo Aluno</h3>
+                <form id="form-registrar-aluno">
+                    <label for="registro-aluno-matricula">Matrícula (ou Nome) do Aluno:</label>
+                    <input type="text" id="registro-aluno-matricula" name="matricula" placeholder="Digite a matrícula ou nome" required>
+
+                    <label for="registro-eletiva">Escolha a Eletiva:</label>
+                    <select id="registro-eletiva" name="eletiva" required>
+                        <option value="" disabled selected>Carregando Eletivas...</option>
+                    </select>
+                    
+                    <button type="submit" class="btn btn-success">Registrar Escolha</button>
+                    <p id="registro-aluno-message" class="message"></p>
+                </form>
+            </div>
+
+
+            <div id="mapa-eletiva-tab" class="tab-content card">
+                <h3>Mapa de Eletivas (Turmas e Notas)</h3>
+                
+                <div class="filter-controls">
+                    <label for="mapa-eletiva-select">Selecione a Eletiva:</label>
+                    <select id="mapa-eletiva-select" required>
+                        <option value="" disabled selected>Carregando Eletivas...</option>
+                    </select>
+                    <button id="btn-ver-mapa" class="btn btn-primary">Ver Alunos na Tela</button>
+                    <button id="btn-gerar-pdf" class="btn btn-primary">⬇️ Gerar PDF para Notas</button>
+                </div>
+                
+                <p id="mapa-message" class="message"></p>
+
+                <h4>Lista de Alunos Registrados</h4>
+                <div class="table-container">
+                    <table id="mapa-alunos-table">
+                        <thead>
+                            <tr>
+                                <th>Matrícula</th>
+                                <th>Nome do Aluno</th>
+                                <th>Turma Origem</th>
+                                <th>Professor</th>
+                                <th class="col-nota">Nota (Preencher no PDF)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="5">Selecione uma eletiva e clique em "Ver Alunos na Tela".</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div> 
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
