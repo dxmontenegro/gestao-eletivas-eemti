@@ -2,6 +2,9 @@
 // SUBSTITUA esta URL pela URL do seu Web App do Google Apps Script (deploy)
 const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbwBIai5AvIrteYrmPlfD_EpTTJi00TWRR8pzzPch-J-45UePzKqIFXESUtZxH4EYncH/exec';
 
+// Lista de turmas estáticas para o sistema
+const TURMAS_FIXAS = ['1A', '1B', '2A', '2B', '3A', '3B']; 
+
 // --- 1. Controle de Abas e Visibilidade ---
 function showTab(tabId) {
     document.querySelectorAll('.tab-content').forEach(tab => {
@@ -30,6 +33,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('username').value = 'monte';
     document.getElementById('password').value = '1234';
     loadDynamicData();
+    // Preenche os selects de turma na inicialização
+    fillTurmaSelect('aluno-turma', TURMAS_FIXAS, 'Selecione a Turma');
+    fillTurmaSelect('registro-turma', TURMAS_FIXAS, 'Selecione a Turma');
 });
 
 // --- 2. Login Simples ---
@@ -140,6 +146,8 @@ document.getElementById('form-registrar-aluno').addEventListener('submit', (e) =
 });
 
 // --- 4. Carregamento de Dados Dinâmicos (GET) ---
+
+// Função para preencher selects genéricos (Eletivas, Professores)
 function fillSelect(selectId, optionsArray, placeholderText = 'Selecione...') {
     const select = document.getElementById(selectId);
     if (!select) return;
@@ -160,6 +168,21 @@ function fillSelect(selectId, optionsArray, placeholderText = 'Selecione...') {
         select.appendChild(option);
     });
 }
+
+// NOVA FUNÇÃO: Preenche selects de Turma com lista estática
+function fillTurmaSelect(selectId, turmasArray, placeholderText = 'Selecione a Turma') {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    select.innerHTML = `<option value="" disabled selected>${placeholderText}</option>`;
+    
+    turmasArray.forEach(turma => {
+        const option = document.createElement('option');
+        option.value = turma;
+        option.textContent = turma;
+        select.appendChild(option);
+    });
+}
+
 
 async function loadDynamicData() {
     const urlBusca = `${GAS_ENDPOINT_URL}?action=getDynamicData`;
@@ -199,6 +222,55 @@ async function loadDynamicDataForMap() {
     await loadDynamicData();
 }
 
+// NOVO LISTENER: Lógica para carregar alunos ao selecionar a turma na ABA REGISTRO
+document.getElementById('registro-turma').addEventListener('change', async function() {
+    const turmaSelecionada = this.value;
+    const alunoSelect = document.getElementById('registro-aluno-nome');
+    const messageElement = document.getElementById('registro-aluno-message');
+
+    // Resetar o campo de aluno
+    alunoSelect.innerHTML = '<option value="" disabled selected>⏳ Carregando alunos...</option>';
+    alunoSelect.disabled = true;
+    messageElement.textContent = '';
+    
+    if (!turmaSelecionada) {
+        alunoSelect.innerHTML = '<option value="" disabled selected>Selecione a Turma Primeiro</option>';
+        return;
+    }
+
+    const urlBusca = `${GAS_ENDPOINT_URL}?action=getAlunosByTurma&turma=${encodeURIComponent(turmaSelecionada)}`;
+
+    try {
+        const response = await fetch(urlBusca);
+        const result = await response.json();
+        
+        if (result.status === 'success' && result.data && result.data.alunos && result.data.alunos.length > 0) {
+            const alunos = result.data.alunos;
+            alunoSelect.innerHTML = '<option value="" disabled selected>Selecione o Aluno</option>';
+            alunos.forEach(aluno => {
+                const option = document.createElement('option');
+                // O valor enviado no formulário será a MATRÍCULA
+                option.value = aluno.matricula; 
+                option.textContent = `${aluno.nome} (${aluno.matricula})`;
+                alunoSelect.appendChild(option);
+            });
+            alunoSelect.disabled = false;
+            messageElement.textContent = `✅ ${alunos.length} alunos carregados para a turma ${turmaSelecionada}.`;
+            messageElement.style.color = 'green';
+        } else {
+            alunoSelect.innerHTML = '<option value="" disabled selected>❌ Nenhum aluno encontrado</option>';
+            messageElement.textContent = `⚠️ Nenhum aluno encontrado na turma ${turmaSelecionada}.`;
+            messageElement.style.color = 'orange';
+        }
+    } catch (error) {
+        console.error('Falha ao buscar alunos:', error);
+        alunoSelect.innerHTML = '<option value="" disabled selected>❌ Erro ao carregar</option>';
+        messageElement.textContent = '❌ Erro de conexão ao buscar alunos.';
+        messageElement.style.color = 'red';
+    }
+});
+
+
 // --- 5. Lógica da Aba "Mapa de Eletivas" ---
 document.getElementById('btn-ver-mapa').addEventListener('click', async function() {
     const select = document.getElementById('mapa-eletiva-select');
@@ -224,21 +296,25 @@ document.getElementById('btn-ver-mapa').addEventListener('click', async function
         corpoTabela.innerHTML = '';
         messageElement.textContent = '';
 
-        if (resultado.status === 'success' && resultado.alunos && resultado.alunos.length > 0) {
-            resultado.alunos.forEach(aluno => {
+        if (resultado.status === 'success' && resultado.data && resultado.data.alunos && resultado.data.alunos.length > 0) {
+            const alunos = resultado.data.alunos;
+            alunos.forEach(aluno => {
                 const row = corpoTabela.insertRow();
                 row.insertCell(0).textContent = aluno.matricula || 'N/A';
                 row.insertCell(1).textContent = aluno.nome || 'N/A';
                 row.insertCell(2).textContent = aluno.turmaOrigem || 'N/A';
                 row.insertCell(3).textContent = aluno.professor || 'N/A';
-                row.insertCell(4).textContent = '';
+                // Adiciona um campo de nota editável (opcionalmente)
+                const notaCell = row.insertCell(4);
+                notaCell.innerHTML = '<input type="number" min="0" max="10" style="width: 50px; text-align: center;">'; 
             });
             messageElement.style.color = 'green';
-            messageElement.textContent = `✅ ${resultado.alunos.length} alunos encontrados na eletiva "${eletiva}".`;
+            messageElement.textContent = `✅ ${alunos.length} alunos encontrados na eletiva "${eletiva}".`;
         } else {
             corpoTabela.innerHTML = '<tr><td colspan="5">Nenhum aluno registrado ou dados incompletos.</td></tr>';
             messageElement.style.color = 'orange';
-            messageElement.textContent = `⚠️ ${resultado.message || 'Nenhum aluno encontrado para a eletiva selecionada.'}`;
+            const msg = (resultado.data && resultado.data.message) ? resultado.data.message : resultado.message;
+            messageElement.textContent = `⚠️ ${msg || 'Nenhum aluno encontrado para a eletiva selecionada.'}`;
         }
     } catch (error) {
         messageElement.style.color = 'red';
@@ -267,21 +343,20 @@ document.getElementById('btn-gerar-pdf').addEventListener('click', async functio
         const resposta = await fetch(urlPDF);
         const resultado = await resposta.json();
 
-        if (resultado.status === 'success' && resultado.pdfUrl) {
+        if (resultado.status === 'success' && resultado.data && resultado.data.pdfUrl) {
             messageElement.style.color = 'green';
             messageElement.textContent = '✅ PDF gerado com sucesso! Abrindo em nova aba...';
-            window.open(resultado.pdfUrl, '_blank');
+            window.open(resultado.data.pdfUrl, '_blank');
         } else {
             messageElement.style.color = 'red';
-            messageElement.textContent = `❌ Erro ao gerar PDF: ${resultado.message}`;
+            const msg = (resultado.data && resultado.data.message) ? resultado.data.message : resultado.message;
+            messageElement.textContent = `❌ Erro ao gerar PDF: ${msg}`;
         }
     } catch (error) {
         messageElement.style.color = 'red';
         messageElement.textContent = '❌ Erro de comunicação ao gerar o PDF. Verifique o GAS.';
     }
 });
-
-
 /*
 
 
@@ -557,6 +632,7 @@ document.getElementById('btn-gerar-pdf').addEventListener('click', async functio
 });
 
 */
+
 
 
 
