@@ -1,8 +1,5 @@
 // script.js (Frontend Logic) - Atualizado
-
-// ----------------------------------------------------------------------
-// URL FINAL E CORRETA (CONFIRME que é seu deploy atual)
-// ----------------------------------------------------------------------
+// SUBSTITUA esta URL pela URL do seu Web App do Google Apps Script (deploy)
 const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbwBIai5AvIrteYrmPlfD_EpTTJi00TWRR8pzzPch-J-45UePzKqIFXESUtZxH4EYncH/exec';
 
 // --- 1. Controle de Abas e Visibilidade ---
@@ -81,12 +78,10 @@ async function sendDataToGAS(action, formId, messageId) {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         });
 
-        // Tenta parsear JSON — se retornar HTML ou falhar, cuidamos disso
         let result = null;
         try {
             result = await response.json();
         } catch (jsonErr) {
-            // Se o servidor respondeu com 200 mas não JSON, mostramos aviso
             if (response.ok) {
                 messageElement.style.color = 'orange';
                 messageElement.textContent = `⚠️ Sucesso na Planilha, mas resposta do servidor não é JSON legível.`;
@@ -150,7 +145,6 @@ function fillSelect(selectId, optionsArray, placeholderText = 'Selecione...') {
     if (!select) return;
     select.innerHTML = `<option value="" disabled selected>${placeholderText}</option>`;
     if (!optionsArray || !Array.isArray(optionsArray) || optionsArray.length === 0) {
-        // mostra opção informativa
         const opt = document.createElement('option');
         opt.value = '';
         opt.disabled = true;
@@ -237,7 +231,7 @@ document.getElementById('btn-ver-mapa').addEventListener('click', async function
                 row.insertCell(1).textContent = aluno.nome || 'N/A';
                 row.insertCell(2).textContent = aluno.turmaOrigem || 'N/A';
                 row.insertCell(3).textContent = aluno.professor || 'N/A';
-                row.insertCell(4).textContent = ''; // nota
+                row.insertCell(4).textContent = '';
             });
             messageElement.style.color = 'green';
             messageElement.textContent = `✅ ${resultado.alunos.length} alunos encontrados na eletiva "${eletiva}".`;
@@ -286,6 +280,8 @@ document.getElementById('btn-gerar-pdf').addEventListener('click', async functio
         messageElement.textContent = '❌ Erro de comunicação ao gerar o PDF. Verifique o GAS.';
     }
 });
+
+
 
 /*
 
@@ -562,4 +558,5 @@ document.getElementById('btn-gerar-pdf').addEventListener('click', async functio
 });
 
 */
+
 
