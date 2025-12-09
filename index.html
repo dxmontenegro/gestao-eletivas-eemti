@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -8,32 +9,9 @@
 </head>
 <body>
   <div id="login-screen" class="card center">
-    <h2>Login</h2>
-    <form id="login-form">
-      <label for="username">Usuário</label>
-      <input id="username" name="username" type="text" placeholder="usuario" required>
-
-      <label for="password">Senha</label>
-      <input id="password" name="password" type="password" placeholder="senha" required>
-
-      <div id="login-message" class="message"></div>
-      <button type="submit" class="btn">Entrar</button>
-    </form>
-  </div>
+    </div>
 
   <div id="main-system" style="display:none">
-    <header class="topbar">
-      <h1>EEMTI DRAGÃO DO MAR — Painel de Eletivas</h1>
-      <div class="tabs">
-        <button class="tab-button active" data-tab="aluno-tab" onclick="showTab('aluno-tab')">Aluno</button>
-        <button class="tab-button" data-tab="professor-tab" onclick="showTab('professor-tab')">Professor</button>
-        <button class="tab-button" data-tab="eletiva-tab" onclick="showTab('eletiva-tab')">Eletiva</button>
-        <button class="tab-button" data-tab="vinculo-tab" onclick="showTab('vinculo-tab')">Vínculo</button>
-        <button class="tab-button" data-tab="registro-tab" onclick="showTab('registro-tab')">Registrar Aluno</button>
-        <button class="tab-button" data-tab="mapa-eletiva-tab" onclick="showTab('mapa-eletiva-tab')">Mapa / Notas</button>
-      </div>
-    </header>
-
     <main class="container">
       <section id="aluno-tab" class="tab-content active">
         <h2>Cadastrar Aluno</h2>
@@ -51,45 +29,6 @@
 
           <div id="aluno-message" class="message"></div>
           <button type="submit" class="btn">Cadastrar Aluno</button>
-        </form>
-      </section>
-
-      <section id="professor-tab" class="tab-content" style="display:none">
-        <h2>Cadastrar Professor</h2>
-        <form id="form-professor">
-          <label for="professor-nome">Nome Completo</label>
-          <input id="professor-nome" name="nome" type="text" placeholder="Nome do professor" required>
-
-          <div id="professor-message" class="message"></div>
-          <button type="submit" class="btn">Cadastrar Professor</button>
-        </form>
-      </section>
-
-      <section id="eletiva-tab" class="tab-content" style="display:none">
-        <h2>Cadastrar Eletiva</h2>
-        <form id="form-eletiva">
-          <label for="eletiva-nome">Nome da Eletiva</label>
-          <input id="eletiva-nome" name="nome" type="text" placeholder="Nome da eletiva" required>
-
-          <label for="eletiva-vagas">Vagas Máximas</label>
-          <input id="eletiva-vagas" name="vagas" type="number" placeholder="20" required min="1">
-
-          <div id="eletiva-message" class="message"></div>
-          <button type="submit" class="btn">Cadastrar Eletiva</button>
-        </form>
-      </section>
-
-      <section id="vinculo-tab" class="tab-content" style="display:none">
-        <h2>Vincular Professor à Eletiva</h2>
-        <form id="form-vincular-professor">
-          <label for="vinculo-professor">Professor</label>
-          <select id="vinculo-professor" name="professor"></select>
-
-          <label for="vinculo-eletiva">Eletiva</label>
-          <select id="vinculo-eletiva" name="eletiva"></select>
-
-          <div id="vinculo-professor-message" class="message"></div>
-          <button type="submit" class="btn">Vincular</button>
         </form>
       </section>
 
@@ -115,40 +54,8 @@
         </form>
       </section>
 
-      <section id="mapa-eletiva-tab" class="tab-content" style="display:none">
-        <h2>Mapa de Eletivas / Notas</h2>
-
-        <div class="row">
-          <label for="mapa-eletiva-select">Selecione a Eletiva</label>
-          <select id="mapa-eletiva-select"></select>
-          <button id="btn-ver-mapa" class="btn small">Ver Mapa</button>
-          <button id="btn-gerar-pdf" class="btn small">Gerar PDF</button>
-        </div>
-
-        <div id="mapa-message" class="message"></div>
-
-        <table id="mapa-alunos-table" class="table">
-          <thead>
-            <tr>
-              <th>Matrícula</th>
-              <th>Nome</th>
-              <th>Turma</th>
-              <th>Professor</th>
-              <th>Nota</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="5">Selecione uma eletiva e clique em "Ver Mapa".</td></tr>
-          </tbody>
-        </table>
-      </section>
-
-    </main>
-
-    <footer class="footer">
-      <small>Desenvolvido — D.S.Montenegro - EEMTI DRAGÃO DO MAR</small>
-    </footer>
-  </div>
+      </main>
+    </div>
 
   <script src="script.js"></script>
 </body>
