@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Gestão de Eletivas</title>
     <style>
+        /* Estilos básicos para o container de login */
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -49,17 +50,17 @@
 </div>
 
 <script>
-    // A função é chamada com o evento 'submit' do formulário
+    // Função que lida com o login
     function validarLogin(event) {
-        // ESSA LINHA É CRUCIAL: Impede que o formulário tente enviar os dados e recarregue a página
+        // ESSENCIAL: Impede que o formulário recarregue a página, o que estava causando o problema.
         event.preventDefault(); 
         
         const usuario = document.getElementById('usuario').value;
         const senha = document.getElementById('senha').value;
 
-        // Verifica as credenciais (Case-Sensitive: 'monte' e '1234')
+        // Credenciais: monte / 1234
         if (usuario === 'monte' && senha === '1234') {
-            // Se tudo estiver OK, força o redirecionamento para o menu
+            // Se tudo estiver OK, redireciona para a página principal do sistema (menu.html)
             window.location.href = 'menu.html'; 
         } else {
             alert('Usuário ou senha inválidos. Tente novamente.');
