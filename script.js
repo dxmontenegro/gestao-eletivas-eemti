@@ -2,8 +2,8 @@
 
 
 
-const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbxR3N2OQClEuarTcboNRblDr-1vbdp_N1vEnzklk6BB38vtpWWKIXz_tYE-PkJGD6jJ/exec';
 
+const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbwBIai5AvIrteYrmPlfD_EpTTJi00TWRR8pzzPch-J-45UePzKqIFXESUtZxH4EYncH/exec';
 // Exemplo: 'https://script.google.com/macros/s/AKfycb.../exec'
 
 // --- 1. Controle de Abas e Visibilidade ---
@@ -249,4 +249,5 @@ document.getElementById('btn-gerar-pdf').addEventListener('click', async functio
     }
 
 });
+
 
