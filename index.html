@@ -1,168 +1,154 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistema Escolar</title>
-
-  <link rel="stylesheet" href="style.css" />
-
-  <!-- ========================================= -->
-  <!-- 🔥 FIREBASE SDKs (Firestore + App) -->
-  <!-- ========================================= -->
-
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
-
-  <script>
-    // 🔥 Configuração do Firebase — SUA CONFIGURAÇÃO
-    const firebaseConfig = {
-      apiKey: "AIzaSyCXZbF9moR3N7eajKdXTGx9NyRN7mcJVIs",
-      authDomain: "escola-eletivas.firebaseapp.com",
-      projectId: "escola-eletivas",
-      storageBucket: "escola-eletivas.firebasestorage.app",
-      messagingSenderId: "824083879774",
-      appId: "1:824083879774:web:219e9a0f025bd86bca21cf"
-    };
-
-    // Inicializa Firebase
-    firebase.initializeApp(firebaseConfig);
-
-    // Inicializa Firestore e deixa global
-    const db = firebase.firestore();
-  </script>
-
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sistema de Eletivas - Painel</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-  <div id="login-screen">
+  <!-- LOGIN -->
+  <div id="login-screen" class="card center">
     <h2>Login</h2>
     <form id="login-form">
-      <label>Usuário:</label>
-      <input type="text" id="username" required />
-      <label>Senha:</label>
-      <input type="password" id="password" required />
+      <label for="username">Usuário</label>
+      <input id="username" name="username" type="text" placeholder="usuario" required>
+
+      <label for="password">Senha</label>
+      <input id="password" name="password" type="password" placeholder="senha" required>
+
+      <div id="login-message" class="message"></div>
       <button type="submit" class="btn">Entrar</button>
-      <p id="login-message"></p>
     </form>
   </div>
 
-  <div id="main-system" style="display: none;">
-    <nav>
-      <button class="tab-button active" data-tab="aluno-tab" onclick="showTab('aluno-tab')">Aluno</button>
-      <button class="tab-button" data-tab="professor-tab" onclick="showTab('professor-tab')">Professor</button>
-      <button class="tab-button" data-tab="eletiva-tab" onclick="showTab('eletiva-tab')">Eletiva</button>
-      <button class="tab-button" data-tab="vinculo-tab" onclick="showTab('vinculo-tab')">Vínculo</button>
-      <button class="tab-button" data-tab="registro-tab" onclick="showTab('registro-tab')">Registro</button>
-      <button class="tab-button" data-tab="mapa-eletiva-tab" onclick="showTab('mapa-eletiva-tab')">Mapa / Notas</button>
-    </nav>
-
-    <!-- ABA ALUNO -->
-    <div id="aluno-tab" class="tab-content active">
-      <h2>Cadastro de Aluno</h2>
-      <form id="form-aluno">
-        <label>Nome Completo:</label>
-        <input type="text" name="nome" required />
-
-        <label>Turma de Origem:</label>
-        <input type="text" name="turma" required />
-
-        <button type="submit" class="btn">Salvar</button>
-      </form>
-      <p id="aluno-message"></p>
-    </div>
-
-    <!-- ABA PROFESSOR -->
-    <div id="professor-tab" class="tab-content">
-      <h2>Cadastro de Professor</h2>
-      <form id="form-professor">
-        <label>Nome Completo:</label>
-        <input type="text" name="nome" required />
-
-        <button type="submit" class="btn">Salvar</button>
-      </form>
-      <p id="professor-message"></p>
-    </div>
-
-    <!-- ABA ELETIVA -->
-    <div id="eletiva-tab" class="tab-content">
-      <h2>Cadastro de Eletiva</h2>
-      <form id="form-eletiva">
-        <label>Nome da Eletiva:</label>
-        <input type="text" name="nome" required />
-
-        <label>Vagas Máximas:</label>
-        <input type="number" name="vagas" required />
-
-        <button type="submit" class="btn">Salvar</button>
-      </form>
-      <p id="eletiva-message"></p>
-    </div>
-
-    <!-- ABA VÍNCULO -->
-    <div id="vinculo-tab" class="tab-content">
-      <h2>Vínculo Professor → Eletiva</h2>
-      <form id="form-vincular-professor">
-        <label>Professor:</label>
-        <select id="vinculo-professor" name="professor"></select>
-
-        <label>Eletiva:</label>
-        <select id="vinculo-eletiva" name="eletiva"></select>
-
-        <button type="submit" class="btn">Salvar</button>
-      </form>
-      <p id="vinculo-professor-message"></p>
-    </div>
-
-    <!-- ABA REGISTRO -->
-    <div id="registro-tab" class="tab-content">
-      <h2>Registrar Aluno na Eletiva</h2>
-      <form id="form-registrar-aluno">
-        <label>Matrícula:</label>
-        <input type="text" name="matricula" required />
-
-        <label>Eletiva:</label>
-        <select id="registro-eletiva" name="eletiva"></select>
-
-        <button type="submit" class="btn">Registrar</button>
-      </form>
-      <p id="registro-aluno-message"></p>
-    </div>
-
-    <!-- ABA MAPA -->
-    <div id="mapa-eletiva-tab" class="tab-content">
-      <h2>Mapa de Alunos da Eletiva</h2>
-
-      <!-- ⚠️ AQUI FICAVA PEQUENO — AGORA CORRIGIDO -->
-      <div class="row" style="flex-wrap: wrap; gap: 12px;">
-        <label for="mapa-eletiva-select" style="min-width: 140px;">Selecione a Eletiva</label>
-        <select id="mapa-eletiva-select" style="flex: 1; min-width: 220px;"></select>
-
-        <button id="btn-ver-mapa" class="btn small">Ver Mapa</button>
-        <button id="btn-gerar-pdf" class="btn small">Gerar PDF</button>
+  <!-- MAIN SYSTEM -->
+  <div id="main-system" style="display:none">
+    <header class="topbar">
+      <h1>EEMTI DRAGÃO DO MAR — Painel de Eletivas</h1>
+      <div class="tabs">
+        <button class="tab-button active" data-tab="aluno-tab" onclick="showTab('aluno-tab')">Aluno</button>
+        <button class="tab-button" data-tab="professor-tab" onclick="showTab('professor-tab')">Professor</button>
+        <button class="tab-button" data-tab="eletiva-tab" onclick="showTab('eletiva-tab')">Eletiva</button>
+        <button class="tab-button" data-tab="vinculo-tab" onclick="showTab('vinculo-tab')">Vínculo</button>
+        <button class="tab-button" data-tab="registro-tab" onclick="showTab('registro-tab')">Registrar Aluno</button>
+        <button class="tab-button" data-tab="mapa-eletiva-tab" onclick="showTab('mapa-eletiva-tab')">Mapa / Notas</button>
       </div>
+    </header>
 
-      <p id="mapa-message"></p>
+    <main class="container">
+      <!-- ABA ALUNO -->
+      <section id="aluno-tab" class="tab-content active">
+        <h2>Cadastrar Aluno</h2>
+        <form id="form-aluno">
+          <label for="aluno-matricula">Matrícula (opcional)</label>
+          <input id="aluno-matricula" name="matricula" type="text" placeholder="12345 (opcional)">
 
-      <table id="mapa-alunos-table">
-        <thead>
-          <tr>
-            <th>Matrícula</th>
-            <th>Nome</th>
-            <th>Turma</th>
-            <th>Professor</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    </div>
+          <label for="aluno-nome">Nome Completo</label>
+          <input id="aluno-nome" name="nome" type="text" placeholder="Nome do aluno" required>
 
+          <label for="aluno-turma">Turma de Origem</label>
+          <input id="aluno-turma" name="turma" type="text" placeholder="Ex: 1A" required>
+
+          <div id="aluno-message" class="message"></div>
+          <button type="submit" class="btn">Cadastrar Aluno</button>
+        </form>
+      </section>
+
+      <!-- ABA PROFESSOR -->
+      <section id="professor-tab" class="tab-content" style="display:none">
+        <h2>Cadastrar Professor</h2>
+        <form id="form-professor">
+          <label for="professor-nome">Nome Completo</label>
+          <input id="professor-nome" name="nome" type="text" placeholder="Nome do professor" required>
+
+          <div id="professor-message" class="message"></div>
+          <button type="submit" class="btn">Cadastrar Professor</button>
+        </form>
+      </section>
+
+      <!-- ABA ELETIVA -->
+      <section id="eletiva-tab" class="tab-content" style="display:none">
+        <h2>Cadastrar Eletiva</h2>
+        <form id="form-eletiva">
+          <label for="eletiva-nome">Nome da Eletiva</label>
+          <input id="eletiva-nome" name="nome" type="text" placeholder="Nome da eletiva" required>
+
+          <label for="eletiva-vagas">Vagas Máximas</label>
+          <input id="eletiva-vagas" name="vagas" type="number" placeholder="20" required min="1">
+
+          <div id="eletiva-message" class="message"></div>
+          <button type="submit" class="btn">Cadastrar Eletiva</button>
+        </form>
+      </section>
+
+      <!-- ABA VÍNCULO -->
+      <section id="vinculo-tab" class="tab-content" style="display:none">
+        <h2>Vincular Professor à Eletiva</h2>
+        <form id="form-vincular-professor">
+          <label for="vinculo-professor">Professor</label>
+          <select id="vinculo-professor" name="professor"></select>
+
+          <label for="vinculo-eletiva">Eletiva</label>
+          <select id="vinculo-eletiva" name="eletiva"></select>
+
+          <div id="vinculo-professor-message" class="message"></div>
+          <button type="submit" class="btn">Vincular</button>
+        </form>
+      </section>
+
+      <!-- ABA REGISTRO DE ALUNO -->
+      <section id="registro-tab" class="tab-content" style="display:none">
+        <h2>Registrar Aluno na Eletiva</h2>
+        <form id="form-registrar-aluno">
+          <label for="registro-matricula">Matrícula ou Nome do Aluno</label>
+          <input id="registro-matricula" name="matricula" type="text" placeholder="Matrícula ou nome (como está em Alunos)" required>
+
+          <label for="registro-eletiva">Eletiva</label>
+          <select id="registro-eletiva" name="eletiva"></select>
+
+          <div id="registro-aluno-message" class="message"></div>
+          <button type="submit" class="btn">Registrar Aluno</button>
+        </form>
+      </section>
+
+      <!-- ABA MAPA DE ELETIVAS -->
+      <section id="mapa-eletiva-tab" class="tab-content" style="display:none">
+        <h2>Mapa de Eletivas / Notas</h2>
+
+        <div class="row">
+          <label for="mapa-eletiva-select">Selecione a Eletiva</label>
+          <select id="mapa-eletiva-select"></select>
+          <button id="btn-ver-mapa" class="btn small">Ver Mapa</button>
+          <button id="btn-gerar-pdf" class="btn small">Gerar PDF</button>
+        </div>
+
+        <div id="mapa-message" class="message"></div>
+
+        <table id="mapa-alunos-table" class="table">
+          <thead>
+            <tr>
+              <th>Matrícula</th>
+              <th>Nome</th>
+              <th>Turma</th>
+              <th>Professor</th>
+              <th>Nota</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td colspan="5">Selecione uma eletiva e clique em "Ver Mapa".</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+    </main>
+
+    <footer class="footer">
+      <small>Desenvolvido — D.S.Montenegro - EEMTI DRAGÃO DO MAR</small>
+    </footer>
   </div>
 
-  <!-- SEU SCRIPT PRINCIPAL -->
   <script src="script.js"></script>
-
 </body>
 </html>
 
