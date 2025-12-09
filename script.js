@@ -1,8 +1,8 @@
 // ATENÇÃO CRÍTICA: SUBSTITUA ESTA VARIÁVEL PELA URL REAL DO SEU APPS SCRIPT
 
 
-const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbxtBnSWMQfrDG91s9TL4tZwKIocQ2y4psuSFy2yTdcUymfJts93YWltXjgqw9tAzvrr/exec';
 
+const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbxR3N2OQClEuarTcboNRblDr-1vbdp_N1vEnzklk6BB38vtpWWKIXz_tYE-PkJGD6jJ/exec';
 
 // Exemplo: 'https://script.google.com/macros/s/AKfycb.../exec'
 
@@ -249,3 +249,4 @@ document.getElementById('btn-gerar-pdf').addEventListener('click', async functio
     }
 
 });
+
