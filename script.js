@@ -1,5 +1,8 @@
-// script.js (Frontend Logic) - Atualizado
-// SUBSTITUA esta URL pela URL do seu Web App do Google Apps Script (deploy)
+// script.js (Frontend Logic)
+
+// ----------------------------------------------------------------------
+// URL FINAL E CORRETA DO WEBAPP GAS
+// ----------------------------------------------------------------------
 const GAS_ENDPOINT_URL = 'https://script.google.com/macros/s/AKfycbwBIai5AvIrteYrmPlfD_EpTTJi00TWRR8pzzPch-J-45UePzKqIFXESUtZxH4EYncH/exec';
 
 // --- 1. Controle de Abas e Visibilidade ---
@@ -9,17 +12,14 @@ function showTab(tabId) {
         tab.classList.remove('active');
     });
     const activeTab = document.getElementById(tabId);
-    if (activeTab) {
-        activeTab.style.display = 'block';
-        activeTab.classList.add('active');
-    }
+    activeTab.style.display = 'block';
+    activeTab.classList.add('active');
 
     document.querySelectorAll('.tab-button').forEach(btn => {
         btn.classList.remove('active');
     });
-    const btn = document.querySelector(`.tab-button[data-tab="${tabId}"]`);
-    if (btn) btn.classList.add('active');
-    
+    document.querySelector(`.tab-button[data-tab="${tabId}"]`).classList.add('active');
+
     if (tabId === 'mapa-eletiva-tab') {
         loadDynamicDataForMap();
     }
@@ -32,13 +32,13 @@ document.addEventListener('DOMContentLoaded', () => {
     loadDynamicData();
 });
 
-// --- 2. Login Simples ---
+// --- 2. Login ---
 document.getElementById('login-form').addEventListener('submit', function(e) {
     e.preventDefault();
-    const user = document.getElementById('username').value.trim(); 
-    const pass = document.getElementById('password').value.trim(); 
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value.trim();
     const message = document.getElementById('login-message');
-    
+
     if (user.toLowerCase() === 'monte' && pass === '1234') {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('main-system').style.display = 'block';
@@ -51,9 +51,9 @@ document.getElementById('login-form').addEventListener('submit', function(e) {
     }
 });
 
-// --- 3. Comunicação Centralizada com o GAS ---
+// --- 3. Função Central para Envio de dados ao GAS ---
+
 function showLoading(messageElement, action = 'Enviando') {
-    if (!messageElement) return;
     messageElement.textContent = `⏳ ${action} dados...`;
     messageElement.style.color = 'blue';
 }
@@ -61,11 +61,12 @@ function showLoading(messageElement, action = 'Enviando') {
 async function sendDataToGAS(action, formId, messageId) {
     const form = document.getElementById(formId);
     const messageElement = document.getElementById(messageId);
-    if (!messageElement) return;
+    
     showLoading(messageElement);
 
     const formData = new FormData(form);
     const params = new URLSearchParams();
+    
     params.append('action', action);
     for (const [key, value] of formData.entries()) {
         params.append(key, value);
@@ -75,45 +76,42 @@ async function sendDataToGAS(action, formId, messageId) {
         const response = await fetch(GAS_ENDPOINT_URL, {
             method: 'POST',
             body: params,
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
         });
 
-        let result = null;
+        let result;
         try {
             result = await response.json();
-        } catch (jsonErr) {
+        } catch {
             if (response.ok) {
                 messageElement.style.color = 'orange';
-                messageElement.textContent = `⚠️ Sucesso na Planilha, mas resposta do servidor não é JSON legível.`;
-                if (form) form.reset();
-                await loadDynamicData();
-                await loadDynamicDataForMap();
+                messageElement.textContent = `⚠️ Dados salvos, mas resposta inválida.`;
+                form.reset();
                 return;
             } else {
-                throw new Error(`Resposta inválida do servidor. Status HTTP: ${response.status}`);
+                throw new Error(`Erro HTTP: ${response.status}`);
             }
         }
 
-        if (result && result.status === 'success') {
+        if (result.status === 'success') {
             messageElement.style.color = 'green';
-            messageElement.textContent = `✅ ${result.message || 'Operação realizada com sucesso.'}`;
-            if (form) form.reset();
-            await loadDynamicData();
-            await loadDynamicDataForMap();
+            messageElement.textContent = `✅ ${result.message}`;
+            form.reset();
+            loadDynamicData();
+            loadDynamicDataForMap();
         } else {
             messageElement.style.color = 'red';
-            const msg = (result && result.message) ? result.message : 'Erro desconhecido do servidor.';
-            messageElement.textContent = `❌ Erro do Servidor: ${msg}`;
+            messageElement.textContent = `❌ Erro: ${result.message}`;
         }
-
     } catch (error) {
-        console.error('Erro de Processamento/Conexão:', error);
         messageElement.style.color = 'red';
-        messageElement.textContent = `❌ Erro de conexão com o servidor. Detalhe: ${error.message || error}`;
+        messageElement.textContent = `❌ Erro de rede: ${error.message}`;
     }
 }
 
-// Vinculação de Formulários
+// Eventos dos formulários
 document.getElementById('form-aluno').addEventListener('submit', (e) => {
     e.preventDefault();
     sendDataToGAS('cadastrarAluno', 'form-aluno', 'aluno-message');
@@ -139,20 +137,10 @@ document.getElementById('form-registrar-aluno').addEventListener('submit', (e) =
     sendDataToGAS('registrarAluno', 'form-registrar-aluno', 'registro-aluno-message');
 });
 
-// --- 4. Carregamento de Dados Dinâmicos (GET) ---
-function fillSelect(selectId, optionsArray, placeholderText = 'Selecione...') {
+// --- 4. Dados Dinâmicos ---
+function fillSelect(selectId, optionsArray) {
     const select = document.getElementById(selectId);
-    if (!select) return;
-    select.innerHTML = `<option value="" disabled selected>${placeholderText}</option>`;
-    if (!optionsArray || !Array.isArray(optionsArray) || optionsArray.length === 0) {
-        const opt = document.createElement('option');
-        opt.value = '';
-        opt.disabled = true;
-        opt.selected = true;
-        opt.textContent = '— Nenhum registro —';
-        select.appendChild(opt);
-        return;
-    }
+    select.innerHTML = '<option value="" disabled selected>Selecione...</option>';
     optionsArray.forEach(item => {
         const option = document.createElement('option');
         option.value = item.nome;
@@ -163,11 +151,13 @@ function fillSelect(selectId, optionsArray, placeholderText = 'Selecione...') {
 
 async function loadDynamicData() {
     const urlBusca = `${GAS_ENDPOINT_URL}?action=getDynamicData`;
-    const selectsToUpdate = ['vinculo-professor', 'vinculo-eletiva', 'registro-eletiva', 'mapa-eletiva-select'];
+    const selectsToUpdate = ['vinculo-professor', 'vinculo-eletiva', 'registro-eletiva'];
 
     selectsToUpdate.forEach(id => {
         const select = document.getElementById(id);
-        if (select) select.innerHTML = '<option value="" disabled selected>⏳ Carregando dados...</option>';
+        if (select) {
+            select.innerHTML = '<option>Carregando...</option>';
+        }
     });
 
     try {
@@ -175,34 +165,20 @@ async function loadDynamicData() {
         const result = await response.json();
 
         if (result.status === 'success') {
-            fillSelect('vinculo-professor', result.professores, 'Selecione o Professor');
-            fillSelect('vinculo-eletiva', result.eletivas, 'Selecione a Eletiva');
-            fillSelect('registro-eletiva', result.eletivas, 'Selecione a Eletiva');
-            fillSelect('mapa-eletiva-select', result.eletivas, 'Selecione a Eletiva');
-        } else {
-            console.error('Erro ao buscar dados dinâmicos:', result.message);
-            selectsToUpdate.forEach(id => {
-                const select = document.getElementById(id);
-                if (select) select.innerHTML = '<option value="" disabled selected>❌ Falha ao carregar</option>';
-            });
+            fillSelect('vinculo-professor', result.professores);
+            fillSelect('vinculo-eletiva', result.eletivas);
+            fillSelect('registro-eletiva', result.eletivas);
         }
-    } catch (error) {
-        console.error('Falha na comunicação com o GAS (GET):', error);
-        selectsToUpdate.forEach(id => {
-            const select = document.getElementById(id);
-            if (select) select.innerHTML = '<option value="" disabled selected>❌ Erro de rede</option>';
-        });
-    }
+    } catch {}
 }
 
 async function loadDynamicDataForMap() {
     await loadDynamicData();
 }
 
-// --- 5. Lógica da Aba "Mapa de Eletivas" ---
+// --- 5. Visualizar Mapa da Eletiva ---
 document.getElementById('btn-ver-mapa').addEventListener('click', async function() {
-    const select = document.getElementById('mapa-eletiva-select');
-    const eletiva = select ? select.value : '';
+    const eletiva = document.getElementById('mapa-eletiva-select').value;
     const corpoTabela = document.querySelector('#mapa-alunos-table tbody');
     const messageElement = document.getElementById('mapa-message');
 
@@ -212,45 +188,43 @@ document.getElementById('btn-ver-mapa').addEventListener('click', async function
         return;
     }
 
-    showLoading(messageElement, `Buscando alunos para "${eletiva}"...`);
+    showLoading(messageElement, `Carregando alunos...`);
     corpoTabela.innerHTML = '<tr><td colspan="5">Carregando...</td></tr>';
 
-    const urlBusca = `${GAS_ENDPOINT_URL}?action=getMapaEletiva&eletiva=${encodeURIComponent(eletiva)}`;
+    const url = `${GAS_ENDPOINT_URL}?action=getMapaEletiva&eletiva=${encodeURIComponent(eletiva)}`;
 
     try {
-        const resposta = await fetch(urlBusca);
+        const resposta = await fetch(url);
         const resultado = await resposta.json();
 
         corpoTabela.innerHTML = '';
         messageElement.textContent = '';
 
-        if (resultado.status === 'success' && resultado.alunos && resultado.alunos.length > 0) {
+        if (resultado.status === 'success' && resultado.alunos?.length > 0) {
             resultado.alunos.forEach(aluno => {
                 const row = corpoTabela.insertRow();
-                row.insertCell(0).textContent = aluno.matricula || 'N/A';
-                row.insertCell(1).textContent = aluno.nome || 'N/A';
-                row.insertCell(2).textContent = aluno.turmaOrigem || 'N/A';
-                row.insertCell(3).textContent = aluno.professor || 'N/A';
+                row.insertCell(0).textContent = aluno.matricula;
+                row.insertCell(1).textContent = aluno.nome;
+                row.insertCell(2).textContent = aluno.turmaOrigem;
+                row.insertCell(3).textContent = aluno.professor;
                 row.insertCell(4).textContent = '';
             });
             messageElement.style.color = 'green';
-            messageElement.textContent = `✅ ${resultado.alunos.length} alunos encontrados na eletiva "${eletiva}".`;
+            messageElement.textContent = `✅ ${resultado.alunos.length} alunos encontrados.`;
         } else {
-            corpoTabela.innerHTML = '<tr><td colspan="5">Nenhum aluno registrado ou dados incompletos.</td></tr>';
+            corpoTabela.innerHTML = '<tr><td colspan="5">Nenhum aluno registrado.</td></tr>';
             messageElement.style.color = 'orange';
-            messageElement.textContent = `⚠️ ${resultado.message || 'Nenhum aluno encontrado para a eletiva selecionada.'}`;
+            messageElement.textContent = resultado.message;
         }
-    } catch (error) {
+    } catch {
         messageElement.style.color = 'red';
-        messageElement.textContent = '❌ Erro ao carregar o mapa. Verifique a conexão com o GAS.';
-        corpoTabela.innerHTML = '<tr><td colspan="5">Erro de rede.</td></tr>';
+        messageElement.textContent = '❌ Erro ao carregar mapa.';
     }
 });
 
-// Botão GERAR PDF PARA NOTAS
+// --- 6. Gerar PDF ---
 document.getElementById('btn-gerar-pdf').addEventListener('click', async function() {
-    const select = document.getElementById('mapa-eletiva-select');
-    const eletiva = select ? select.value : '';
+    const eletiva = document.getElementById('mapa-eletiva-select').value;
     const messageElement = document.getElementById('mapa-message');
 
     if (!eletiva) {
@@ -259,28 +233,25 @@ document.getElementById('btn-gerar-pdf').addEventListener('click', async functio
         return;
     }
 
-    showLoading(messageElement, 'Solicitando geração do PDF...');
-
-    const urlPDF = `${GAS_ENDPOINT_URL}?action=generateMapaPDF&eletiva=${encodeURIComponent(eletiva)}`;
+    showLoading(messageElement, 'Gerando PDF...');
 
     try {
-        const resposta = await fetch(urlPDF);
+        const resposta = await fetch(`${GAS_ENDPOINT_URL}?action=generateMapaPDF&eletiva=${encodeURIComponent(eletiva)}`);
         const resultado = await resposta.json();
 
         if (resultado.status === 'success' && resultado.pdfUrl) {
             messageElement.style.color = 'green';
-            messageElement.textContent = '✅ PDF gerado com sucesso! Abrindo em nova aba...';
+            messageElement.textContent = '✅ PDF gerado! Abrindo...';
             window.open(resultado.pdfUrl, '_blank');
         } else {
             messageElement.style.color = 'red';
-            messageElement.textContent = `❌ Erro ao gerar PDF: ${resultado.message}`;
+            messageElement.textContent = `❌ ${resultado.message}`;
         }
-    } catch (error) {
+    } catch {
         messageElement.style.color = 'red';
-        messageElement.textContent = '❌ Erro de comunicação ao gerar o PDF. Verifique o GAS.';
+        messageElement.textContent = '❌ Erro ao gerar PDF.';
     }
 });
-
 
 
 /*
@@ -558,6 +529,7 @@ document.getElementById('btn-gerar-pdf').addEventListener('click', async functio
 });
 
 */
+
 
 
 
