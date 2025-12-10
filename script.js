@@ -282,6 +282,8 @@ document.getElementById('btn-gerar-pdf').addEventListener('click', async functio
 });
 
 
+
+
 // ... (Restante das funções: btn-ver-mapa, btn-gerar-pdf) ...
 
 
@@ -560,6 +562,7 @@ document.getElementById('btn-gerar-pdf').addEventListener('click', async functio
 });
 
 */
+
 
 
 
